@@ -8,10 +8,10 @@
 - **Generate Ent code**: `go generate ./ent`
 - **Format code**: `go fmt ./...`
 - **Vet code**: `go vet ./...`
-- **Run CLI**: `./rara-membership --help`
-- **List members**: `./rara-membership list-members`
-- **Create member**: `./rara-membership create-member`
-- **Start server**: `./rara-membership serve`
+- **Run CLI**: `./go run main.go --help`
+- **List members**: `go run main.go member list`
+- **Create member**: `./go run main.go member create`
+- **Start server**: `./go run main.go serve`
 
 ## Code Style Guidelines
 

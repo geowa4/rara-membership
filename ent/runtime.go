@@ -13,12 +13,20 @@ import (
 func init() {
 	memberFields := schema.Member{}.Fields()
 	_ = memberFields
+	// memberDescEmail is the schema descriptor for email field.
+	memberDescEmail := memberFields[1].Descriptor()
+	// member.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	member.EmailValidator = memberDescEmail.Validators[0].(func(string) error)
 	// memberDescIsActive is the schema descriptor for is_active field.
-	memberDescIsActive := memberFields[5].Descriptor()
+	memberDescIsActive := memberFields[6].Descriptor()
 	// member.DefaultIsActive holds the default value on creation for the is_active field.
 	member.DefaultIsActive = memberDescIsActive.Default.(bool)
 	// memberDescIsSilentKey is the schema descriptor for is_silent_key field.
-	memberDescIsSilentKey := memberFields[6].Descriptor()
+	memberDescIsSilentKey := memberFields[7].Descriptor()
 	// member.DefaultIsSilentKey holds the default value on creation for the is_silent_key field.
 	member.DefaultIsSilentKey = memberDescIsSilentKey.Default.(bool)
+	// memberDescLicenseClass is the schema descriptor for license_class field.
+	memberDescLicenseClass := memberFields[8].Descriptor()
+	// member.LicenseClassValidator is a validator for the "license_class" field. It is called by the builders before save.
+	member.LicenseClassValidator = memberDescLicenseClass.Validators[0].(func(string) error)
 }

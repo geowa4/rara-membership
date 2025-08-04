@@ -22,6 +22,8 @@ type Member struct {
 	Email string `json:"email,omitempty"`
 	// Phone holds the value of the "phone" field.
 	Phone string `json:"phone,omitempty"`
+	// MailingAddress holds the value of the "mailing_address" field.
+	MailingAddress string `json:"mailing_address,omitempty"`
 	// CallSign holds the value of the "call_sign" field.
 	CallSign string `json:"call_sign,omitempty"`
 	// Frn holds the value of the "frn" field.
@@ -29,7 +31,9 @@ type Member struct {
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// IsSilentKey holds the value of the "is_silent_key" field.
-	IsSilentKey  bool `json:"is_silent_key,omitempty"`
+	IsSilentKey bool `json:"is_silent_key,omitempty"`
+	// LicenseClass holds the value of the "license_class" field.
+	LicenseClass string `json:"license_class,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -42,7 +46,7 @@ func (*Member) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case member.FieldID:
 			values[i] = new(sql.NullInt64)
-		case member.FieldName, member.FieldEmail, member.FieldPhone, member.FieldCallSign, member.FieldFrn:
+		case member.FieldName, member.FieldEmail, member.FieldPhone, member.FieldMailingAddress, member.FieldCallSign, member.FieldFrn, member.FieldLicenseClass:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -83,6 +87,12 @@ func (_m *Member) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Phone = value.String
 			}
+		case member.FieldMailingAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field mailing_address", values[i])
+			} else if value.Valid {
+				_m.MailingAddress = value.String
+			}
 		case member.FieldCallSign:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field call_sign", values[i])
@@ -106,6 +116,12 @@ func (_m *Member) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_silent_key", values[i])
 			} else if value.Valid {
 				_m.IsSilentKey = value.Bool
+			}
+		case member.FieldLicenseClass:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field license_class", values[i])
+			} else if value.Valid {
+				_m.LicenseClass = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -152,6 +168,9 @@ func (_m *Member) String() string {
 	builder.WriteString("phone=")
 	builder.WriteString(_m.Phone)
 	builder.WriteString(", ")
+	builder.WriteString("mailing_address=")
+	builder.WriteString(_m.MailingAddress)
+	builder.WriteString(", ")
 	builder.WriteString("call_sign=")
 	builder.WriteString(_m.CallSign)
 	builder.WriteString(", ")
@@ -163,6 +182,9 @@ func (_m *Member) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_silent_key=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSilentKey))
+	builder.WriteString(", ")
+	builder.WriteString("license_class=")
+	builder.WriteString(_m.LicenseClass)
 	builder.WriteByte(')')
 	return builder.String()
 }

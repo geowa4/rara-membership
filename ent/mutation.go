@@ -29,20 +29,22 @@ const (
 // MemberMutation represents an operation that mutates the Member nodes in the graph.
 type MemberMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	email         *string
-	phone         *string
-	call_sign     *string
-	frn           *string
-	is_active     *bool
-	is_silent_key *bool
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Member, error)
-	predicates    []predicate.Member
+	op              Op
+	typ             string
+	id              *int
+	name            *string
+	email           *string
+	phone           *string
+	mailing_address *string
+	call_sign       *string
+	frn             *string
+	is_active       *bool
+	is_silent_key   *bool
+	license_class   *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*Member, error)
+	predicates      []predicate.Member
 }
 
 var _ ent.Mutation = (*MemberMutation)(nil)
@@ -246,9 +248,71 @@ func (m *MemberMutation) OldPhone(ctx context.Context) (v string, err error) {
 	return oldValue.Phone, nil
 }
 
+// ClearPhone clears the value of the "phone" field.
+func (m *MemberMutation) ClearPhone() {
+	m.phone = nil
+	m.clearedFields[member.FieldPhone] = struct{}{}
+}
+
+// PhoneCleared returns if the "phone" field was cleared in this mutation.
+func (m *MemberMutation) PhoneCleared() bool {
+	_, ok := m.clearedFields[member.FieldPhone]
+	return ok
+}
+
 // ResetPhone resets all changes to the "phone" field.
 func (m *MemberMutation) ResetPhone() {
 	m.phone = nil
+	delete(m.clearedFields, member.FieldPhone)
+}
+
+// SetMailingAddress sets the "mailing_address" field.
+func (m *MemberMutation) SetMailingAddress(s string) {
+	m.mailing_address = &s
+}
+
+// MailingAddress returns the value of the "mailing_address" field in the mutation.
+func (m *MemberMutation) MailingAddress() (r string, exists bool) {
+	v := m.mailing_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMailingAddress returns the old "mailing_address" field's value of the Member entity.
+// If the Member object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemberMutation) OldMailingAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMailingAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMailingAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMailingAddress: %w", err)
+	}
+	return oldValue.MailingAddress, nil
+}
+
+// ClearMailingAddress clears the value of the "mailing_address" field.
+func (m *MemberMutation) ClearMailingAddress() {
+	m.mailing_address = nil
+	m.clearedFields[member.FieldMailingAddress] = struct{}{}
+}
+
+// MailingAddressCleared returns if the "mailing_address" field was cleared in this mutation.
+func (m *MemberMutation) MailingAddressCleared() bool {
+	_, ok := m.clearedFields[member.FieldMailingAddress]
+	return ok
+}
+
+// ResetMailingAddress resets all changes to the "mailing_address" field.
+func (m *MemberMutation) ResetMailingAddress() {
+	m.mailing_address = nil
+	delete(m.clearedFields, member.FieldMailingAddress)
 }
 
 // SetCallSign sets the "call_sign" field.
@@ -282,9 +346,22 @@ func (m *MemberMutation) OldCallSign(ctx context.Context) (v string, err error) 
 	return oldValue.CallSign, nil
 }
 
+// ClearCallSign clears the value of the "call_sign" field.
+func (m *MemberMutation) ClearCallSign() {
+	m.call_sign = nil
+	m.clearedFields[member.FieldCallSign] = struct{}{}
+}
+
+// CallSignCleared returns if the "call_sign" field was cleared in this mutation.
+func (m *MemberMutation) CallSignCleared() bool {
+	_, ok := m.clearedFields[member.FieldCallSign]
+	return ok
+}
+
 // ResetCallSign resets all changes to the "call_sign" field.
 func (m *MemberMutation) ResetCallSign() {
 	m.call_sign = nil
+	delete(m.clearedFields, member.FieldCallSign)
 }
 
 // SetFrn sets the "frn" field.
@@ -318,9 +395,22 @@ func (m *MemberMutation) OldFrn(ctx context.Context) (v string, err error) {
 	return oldValue.Frn, nil
 }
 
+// ClearFrn clears the value of the "frn" field.
+func (m *MemberMutation) ClearFrn() {
+	m.frn = nil
+	m.clearedFields[member.FieldFrn] = struct{}{}
+}
+
+// FrnCleared returns if the "frn" field was cleared in this mutation.
+func (m *MemberMutation) FrnCleared() bool {
+	_, ok := m.clearedFields[member.FieldFrn]
+	return ok
+}
+
 // ResetFrn resets all changes to the "frn" field.
 func (m *MemberMutation) ResetFrn() {
 	m.frn = nil
+	delete(m.clearedFields, member.FieldFrn)
 }
 
 // SetIsActive sets the "is_active" field.
@@ -395,6 +485,55 @@ func (m *MemberMutation) ResetIsSilentKey() {
 	m.is_silent_key = nil
 }
 
+// SetLicenseClass sets the "license_class" field.
+func (m *MemberMutation) SetLicenseClass(s string) {
+	m.license_class = &s
+}
+
+// LicenseClass returns the value of the "license_class" field in the mutation.
+func (m *MemberMutation) LicenseClass() (r string, exists bool) {
+	v := m.license_class
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLicenseClass returns the old "license_class" field's value of the Member entity.
+// If the Member object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemberMutation) OldLicenseClass(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLicenseClass is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLicenseClass requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLicenseClass: %w", err)
+	}
+	return oldValue.LicenseClass, nil
+}
+
+// ClearLicenseClass clears the value of the "license_class" field.
+func (m *MemberMutation) ClearLicenseClass() {
+	m.license_class = nil
+	m.clearedFields[member.FieldLicenseClass] = struct{}{}
+}
+
+// LicenseClassCleared returns if the "license_class" field was cleared in this mutation.
+func (m *MemberMutation) LicenseClassCleared() bool {
+	_, ok := m.clearedFields[member.FieldLicenseClass]
+	return ok
+}
+
+// ResetLicenseClass resets all changes to the "license_class" field.
+func (m *MemberMutation) ResetLicenseClass() {
+	m.license_class = nil
+	delete(m.clearedFields, member.FieldLicenseClass)
+}
+
 // Where appends a list predicates to the MemberMutation builder.
 func (m *MemberMutation) Where(ps ...predicate.Member) {
 	m.predicates = append(m.predicates, ps...)
@@ -429,7 +568,7 @@ func (m *MemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemberMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, member.FieldName)
 	}
@@ -438,6 +577,9 @@ func (m *MemberMutation) Fields() []string {
 	}
 	if m.phone != nil {
 		fields = append(fields, member.FieldPhone)
+	}
+	if m.mailing_address != nil {
+		fields = append(fields, member.FieldMailingAddress)
 	}
 	if m.call_sign != nil {
 		fields = append(fields, member.FieldCallSign)
@@ -450,6 +592,9 @@ func (m *MemberMutation) Fields() []string {
 	}
 	if m.is_silent_key != nil {
 		fields = append(fields, member.FieldIsSilentKey)
+	}
+	if m.license_class != nil {
+		fields = append(fields, member.FieldLicenseClass)
 	}
 	return fields
 }
@@ -465,6 +610,8 @@ func (m *MemberMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case member.FieldPhone:
 		return m.Phone()
+	case member.FieldMailingAddress:
+		return m.MailingAddress()
 	case member.FieldCallSign:
 		return m.CallSign()
 	case member.FieldFrn:
@@ -473,6 +620,8 @@ func (m *MemberMutation) Field(name string) (ent.Value, bool) {
 		return m.IsActive()
 	case member.FieldIsSilentKey:
 		return m.IsSilentKey()
+	case member.FieldLicenseClass:
+		return m.LicenseClass()
 	}
 	return nil, false
 }
@@ -488,6 +637,8 @@ func (m *MemberMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldEmail(ctx)
 	case member.FieldPhone:
 		return m.OldPhone(ctx)
+	case member.FieldMailingAddress:
+		return m.OldMailingAddress(ctx)
 	case member.FieldCallSign:
 		return m.OldCallSign(ctx)
 	case member.FieldFrn:
@@ -496,6 +647,8 @@ func (m *MemberMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldIsActive(ctx)
 	case member.FieldIsSilentKey:
 		return m.OldIsSilentKey(ctx)
+	case member.FieldLicenseClass:
+		return m.OldLicenseClass(ctx)
 	}
 	return nil, fmt.Errorf("unknown Member field %s", name)
 }
@@ -526,6 +679,13 @@ func (m *MemberMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPhone(v)
 		return nil
+	case member.FieldMailingAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMailingAddress(v)
+		return nil
 	case member.FieldCallSign:
 		v, ok := value.(string)
 		if !ok {
@@ -553,6 +713,13 @@ func (m *MemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsSilentKey(v)
+		return nil
+	case member.FieldLicenseClass:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLicenseClass(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Member field %s", name)
@@ -583,7 +750,23 @@ func (m *MemberMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MemberMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(member.FieldPhone) {
+		fields = append(fields, member.FieldPhone)
+	}
+	if m.FieldCleared(member.FieldMailingAddress) {
+		fields = append(fields, member.FieldMailingAddress)
+	}
+	if m.FieldCleared(member.FieldCallSign) {
+		fields = append(fields, member.FieldCallSign)
+	}
+	if m.FieldCleared(member.FieldFrn) {
+		fields = append(fields, member.FieldFrn)
+	}
+	if m.FieldCleared(member.FieldLicenseClass) {
+		fields = append(fields, member.FieldLicenseClass)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -596,6 +779,23 @@ func (m *MemberMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MemberMutation) ClearField(name string) error {
+	switch name {
+	case member.FieldPhone:
+		m.ClearPhone()
+		return nil
+	case member.FieldMailingAddress:
+		m.ClearMailingAddress()
+		return nil
+	case member.FieldCallSign:
+		m.ClearCallSign()
+		return nil
+	case member.FieldFrn:
+		m.ClearFrn()
+		return nil
+	case member.FieldLicenseClass:
+		m.ClearLicenseClass()
+		return nil
+	}
 	return fmt.Errorf("unknown Member nullable field %s", name)
 }
 
@@ -612,6 +812,9 @@ func (m *MemberMutation) ResetField(name string) error {
 	case member.FieldPhone:
 		m.ResetPhone()
 		return nil
+	case member.FieldMailingAddress:
+		m.ResetMailingAddress()
+		return nil
 	case member.FieldCallSign:
 		m.ResetCallSign()
 		return nil
@@ -623,6 +826,9 @@ func (m *MemberMutation) ResetField(name string) error {
 		return nil
 	case member.FieldIsSilentKey:
 		m.ResetIsSilentKey()
+		return nil
+	case member.FieldLicenseClass:
+		m.ResetLicenseClass()
 		return nil
 	}
 	return fmt.Errorf("unknown Member field %s", name)

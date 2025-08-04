@@ -37,15 +37,53 @@ func (_c *MemberCreate) SetPhone(v string) *MemberCreate {
 	return _c
 }
 
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_c *MemberCreate) SetNillablePhone(v *string) *MemberCreate {
+	if v != nil {
+		_c.SetPhone(*v)
+	}
+	return _c
+}
+
+// SetMailingAddress sets the "mailing_address" field.
+func (_c *MemberCreate) SetMailingAddress(v string) *MemberCreate {
+	_c.mutation.SetMailingAddress(v)
+	return _c
+}
+
+// SetNillableMailingAddress sets the "mailing_address" field if the given value is not nil.
+func (_c *MemberCreate) SetNillableMailingAddress(v *string) *MemberCreate {
+	if v != nil {
+		_c.SetMailingAddress(*v)
+	}
+	return _c
+}
+
 // SetCallSign sets the "call_sign" field.
 func (_c *MemberCreate) SetCallSign(v string) *MemberCreate {
 	_c.mutation.SetCallSign(v)
 	return _c
 }
 
+// SetNillableCallSign sets the "call_sign" field if the given value is not nil.
+func (_c *MemberCreate) SetNillableCallSign(v *string) *MemberCreate {
+	if v != nil {
+		_c.SetCallSign(*v)
+	}
+	return _c
+}
+
 // SetFrn sets the "frn" field.
 func (_c *MemberCreate) SetFrn(v string) *MemberCreate {
 	_c.mutation.SetFrn(v)
+	return _c
+}
+
+// SetNillableFrn sets the "frn" field if the given value is not nil.
+func (_c *MemberCreate) SetNillableFrn(v *string) *MemberCreate {
+	if v != nil {
+		_c.SetFrn(*v)
+	}
 	return _c
 }
 
@@ -73,6 +111,20 @@ func (_c *MemberCreate) SetIsSilentKey(v bool) *MemberCreate {
 func (_c *MemberCreate) SetNillableIsSilentKey(v *bool) *MemberCreate {
 	if v != nil {
 		_c.SetIsSilentKey(*v)
+	}
+	return _c
+}
+
+// SetLicenseClass sets the "license_class" field.
+func (_c *MemberCreate) SetLicenseClass(v string) *MemberCreate {
+	_c.mutation.SetLicenseClass(v)
+	return _c
+}
+
+// SetNillableLicenseClass sets the "license_class" field if the given value is not nil.
+func (_c *MemberCreate) SetNillableLicenseClass(v *string) *MemberCreate {
+	if v != nil {
+		_c.SetLicenseClass(*v)
 	}
 	return _c
 }
@@ -130,20 +182,21 @@ func (_c *MemberCreate) check() error {
 	if _, ok := _c.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Member.email"`)}
 	}
-	if _, ok := _c.mutation.Phone(); !ok {
-		return &ValidationError{Name: "phone", err: errors.New(`ent: missing required field "Member.phone"`)}
-	}
-	if _, ok := _c.mutation.CallSign(); !ok {
-		return &ValidationError{Name: "call_sign", err: errors.New(`ent: missing required field "Member.call_sign"`)}
-	}
-	if _, ok := _c.mutation.Frn(); !ok {
-		return &ValidationError{Name: "frn", err: errors.New(`ent: missing required field "Member.frn"`)}
+	if v, ok := _c.mutation.Email(); ok {
+		if err := member.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Member.email": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "Member.is_active"`)}
 	}
 	if _, ok := _c.mutation.IsSilentKey(); !ok {
 		return &ValidationError{Name: "is_silent_key", err: errors.New(`ent: missing required field "Member.is_silent_key"`)}
+	}
+	if v, ok := _c.mutation.LicenseClass(); ok {
+		if err := member.LicenseClassValidator(v); err != nil {
+			return &ValidationError{Name: "license_class", err: fmt.Errorf(`ent: validator failed for field "Member.license_class": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -183,6 +236,10 @@ func (_c *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 		_spec.SetField(member.FieldPhone, field.TypeString, value)
 		_node.Phone = value
 	}
+	if value, ok := _c.mutation.MailingAddress(); ok {
+		_spec.SetField(member.FieldMailingAddress, field.TypeString, value)
+		_node.MailingAddress = value
+	}
 	if value, ok := _c.mutation.CallSign(); ok {
 		_spec.SetField(member.FieldCallSign, field.TypeString, value)
 		_node.CallSign = value
@@ -198,6 +255,10 @@ func (_c *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsSilentKey(); ok {
 		_spec.SetField(member.FieldIsSilentKey, field.TypeBool, value)
 		_node.IsSilentKey = value
+	}
+	if value, ok := _c.mutation.LicenseClass(); ok {
+		_spec.SetField(member.FieldLicenseClass, field.TypeString, value)
+		_node.LicenseClass = value
 	}
 	return _node, _spec
 }

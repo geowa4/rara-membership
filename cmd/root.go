@@ -19,7 +19,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(listMembersCmd)
-	rootCmd.AddCommand(createMemberCmd)
+	rootCmd.AddCommand(memberCmd)
 	rootCmd.AddCommand(serveCmd)
 }

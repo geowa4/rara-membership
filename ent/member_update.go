@@ -69,6 +69,32 @@ func (_u *MemberUpdate) SetNillablePhone(v *string) *MemberUpdate {
 	return _u
 }
 
+// ClearPhone clears the value of the "phone" field.
+func (_u *MemberUpdate) ClearPhone() *MemberUpdate {
+	_u.mutation.ClearPhone()
+	return _u
+}
+
+// SetMailingAddress sets the "mailing_address" field.
+func (_u *MemberUpdate) SetMailingAddress(v string) *MemberUpdate {
+	_u.mutation.SetMailingAddress(v)
+	return _u
+}
+
+// SetNillableMailingAddress sets the "mailing_address" field if the given value is not nil.
+func (_u *MemberUpdate) SetNillableMailingAddress(v *string) *MemberUpdate {
+	if v != nil {
+		_u.SetMailingAddress(*v)
+	}
+	return _u
+}
+
+// ClearMailingAddress clears the value of the "mailing_address" field.
+func (_u *MemberUpdate) ClearMailingAddress() *MemberUpdate {
+	_u.mutation.ClearMailingAddress()
+	return _u
+}
+
 // SetCallSign sets the "call_sign" field.
 func (_u *MemberUpdate) SetCallSign(v string) *MemberUpdate {
 	_u.mutation.SetCallSign(v)
@@ -83,6 +109,12 @@ func (_u *MemberUpdate) SetNillableCallSign(v *string) *MemberUpdate {
 	return _u
 }
 
+// ClearCallSign clears the value of the "call_sign" field.
+func (_u *MemberUpdate) ClearCallSign() *MemberUpdate {
+	_u.mutation.ClearCallSign()
+	return _u
+}
+
 // SetFrn sets the "frn" field.
 func (_u *MemberUpdate) SetFrn(v string) *MemberUpdate {
 	_u.mutation.SetFrn(v)
@@ -94,6 +126,12 @@ func (_u *MemberUpdate) SetNillableFrn(v *string) *MemberUpdate {
 	if v != nil {
 		_u.SetFrn(*v)
 	}
+	return _u
+}
+
+// ClearFrn clears the value of the "frn" field.
+func (_u *MemberUpdate) ClearFrn() *MemberUpdate {
+	_u.mutation.ClearFrn()
 	return _u
 }
 
@@ -122,6 +160,26 @@ func (_u *MemberUpdate) SetNillableIsSilentKey(v *bool) *MemberUpdate {
 	if v != nil {
 		_u.SetIsSilentKey(*v)
 	}
+	return _u
+}
+
+// SetLicenseClass sets the "license_class" field.
+func (_u *MemberUpdate) SetLicenseClass(v string) *MemberUpdate {
+	_u.mutation.SetLicenseClass(v)
+	return _u
+}
+
+// SetNillableLicenseClass sets the "license_class" field if the given value is not nil.
+func (_u *MemberUpdate) SetNillableLicenseClass(v *string) *MemberUpdate {
+	if v != nil {
+		_u.SetLicenseClass(*v)
+	}
+	return _u
+}
+
+// ClearLicenseClass clears the value of the "license_class" field.
+func (_u *MemberUpdate) ClearLicenseClass() *MemberUpdate {
+	_u.mutation.ClearLicenseClass()
 	return _u
 }
 
@@ -157,7 +215,25 @@ func (_u *MemberUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *MemberUpdate) check() error {
+	if v, ok := _u.mutation.Email(); ok {
+		if err := member.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Member.email": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.LicenseClass(); ok {
+		if err := member.LicenseClassValidator(v); err != nil {
+			return &ValidationError{Name: "license_class", err: fmt.Errorf(`ent: validator failed for field "Member.license_class": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *MemberUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(member.Table, member.Columns, sqlgraph.NewFieldSpec(member.FieldID, field.TypeInt))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -175,17 +251,38 @@ func (_u *MemberUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Phone(); ok {
 		_spec.SetField(member.FieldPhone, field.TypeString, value)
 	}
+	if _u.mutation.PhoneCleared() {
+		_spec.ClearField(member.FieldPhone, field.TypeString)
+	}
+	if value, ok := _u.mutation.MailingAddress(); ok {
+		_spec.SetField(member.FieldMailingAddress, field.TypeString, value)
+	}
+	if _u.mutation.MailingAddressCleared() {
+		_spec.ClearField(member.FieldMailingAddress, field.TypeString)
+	}
 	if value, ok := _u.mutation.CallSign(); ok {
 		_spec.SetField(member.FieldCallSign, field.TypeString, value)
 	}
+	if _u.mutation.CallSignCleared() {
+		_spec.ClearField(member.FieldCallSign, field.TypeString)
+	}
 	if value, ok := _u.mutation.Frn(); ok {
 		_spec.SetField(member.FieldFrn, field.TypeString, value)
+	}
+	if _u.mutation.FrnCleared() {
+		_spec.ClearField(member.FieldFrn, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(member.FieldIsActive, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.IsSilentKey(); ok {
 		_spec.SetField(member.FieldIsSilentKey, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LicenseClass(); ok {
+		_spec.SetField(member.FieldLicenseClass, field.TypeString, value)
+	}
+	if _u.mutation.LicenseClassCleared() {
+		_spec.ClearField(member.FieldLicenseClass, field.TypeString)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -249,6 +346,32 @@ func (_u *MemberUpdateOne) SetNillablePhone(v *string) *MemberUpdateOne {
 	return _u
 }
 
+// ClearPhone clears the value of the "phone" field.
+func (_u *MemberUpdateOne) ClearPhone() *MemberUpdateOne {
+	_u.mutation.ClearPhone()
+	return _u
+}
+
+// SetMailingAddress sets the "mailing_address" field.
+func (_u *MemberUpdateOne) SetMailingAddress(v string) *MemberUpdateOne {
+	_u.mutation.SetMailingAddress(v)
+	return _u
+}
+
+// SetNillableMailingAddress sets the "mailing_address" field if the given value is not nil.
+func (_u *MemberUpdateOne) SetNillableMailingAddress(v *string) *MemberUpdateOne {
+	if v != nil {
+		_u.SetMailingAddress(*v)
+	}
+	return _u
+}
+
+// ClearMailingAddress clears the value of the "mailing_address" field.
+func (_u *MemberUpdateOne) ClearMailingAddress() *MemberUpdateOne {
+	_u.mutation.ClearMailingAddress()
+	return _u
+}
+
 // SetCallSign sets the "call_sign" field.
 func (_u *MemberUpdateOne) SetCallSign(v string) *MemberUpdateOne {
 	_u.mutation.SetCallSign(v)
@@ -263,6 +386,12 @@ func (_u *MemberUpdateOne) SetNillableCallSign(v *string) *MemberUpdateOne {
 	return _u
 }
 
+// ClearCallSign clears the value of the "call_sign" field.
+func (_u *MemberUpdateOne) ClearCallSign() *MemberUpdateOne {
+	_u.mutation.ClearCallSign()
+	return _u
+}
+
 // SetFrn sets the "frn" field.
 func (_u *MemberUpdateOne) SetFrn(v string) *MemberUpdateOne {
 	_u.mutation.SetFrn(v)
@@ -274,6 +403,12 @@ func (_u *MemberUpdateOne) SetNillableFrn(v *string) *MemberUpdateOne {
 	if v != nil {
 		_u.SetFrn(*v)
 	}
+	return _u
+}
+
+// ClearFrn clears the value of the "frn" field.
+func (_u *MemberUpdateOne) ClearFrn() *MemberUpdateOne {
+	_u.mutation.ClearFrn()
 	return _u
 }
 
@@ -302,6 +437,26 @@ func (_u *MemberUpdateOne) SetNillableIsSilentKey(v *bool) *MemberUpdateOne {
 	if v != nil {
 		_u.SetIsSilentKey(*v)
 	}
+	return _u
+}
+
+// SetLicenseClass sets the "license_class" field.
+func (_u *MemberUpdateOne) SetLicenseClass(v string) *MemberUpdateOne {
+	_u.mutation.SetLicenseClass(v)
+	return _u
+}
+
+// SetNillableLicenseClass sets the "license_class" field if the given value is not nil.
+func (_u *MemberUpdateOne) SetNillableLicenseClass(v *string) *MemberUpdateOne {
+	if v != nil {
+		_u.SetLicenseClass(*v)
+	}
+	return _u
+}
+
+// ClearLicenseClass clears the value of the "license_class" field.
+func (_u *MemberUpdateOne) ClearLicenseClass() *MemberUpdateOne {
+	_u.mutation.ClearLicenseClass()
 	return _u
 }
 
@@ -350,7 +505,25 @@ func (_u *MemberUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *MemberUpdateOne) check() error {
+	if v, ok := _u.mutation.Email(); ok {
+		if err := member.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Member.email": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.LicenseClass(); ok {
+		if err := member.LicenseClassValidator(v); err != nil {
+			return &ValidationError{Name: "license_class", err: fmt.Errorf(`ent: validator failed for field "Member.license_class": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(member.Table, member.Columns, sqlgraph.NewFieldSpec(member.FieldID, field.TypeInt))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -385,17 +558,38 @@ func (_u *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err erro
 	if value, ok := _u.mutation.Phone(); ok {
 		_spec.SetField(member.FieldPhone, field.TypeString, value)
 	}
+	if _u.mutation.PhoneCleared() {
+		_spec.ClearField(member.FieldPhone, field.TypeString)
+	}
+	if value, ok := _u.mutation.MailingAddress(); ok {
+		_spec.SetField(member.FieldMailingAddress, field.TypeString, value)
+	}
+	if _u.mutation.MailingAddressCleared() {
+		_spec.ClearField(member.FieldMailingAddress, field.TypeString)
+	}
 	if value, ok := _u.mutation.CallSign(); ok {
 		_spec.SetField(member.FieldCallSign, field.TypeString, value)
 	}
+	if _u.mutation.CallSignCleared() {
+		_spec.ClearField(member.FieldCallSign, field.TypeString)
+	}
 	if value, ok := _u.mutation.Frn(); ok {
 		_spec.SetField(member.FieldFrn, field.TypeString, value)
+	}
+	if _u.mutation.FrnCleared() {
+		_spec.ClearField(member.FieldFrn, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(member.FieldIsActive, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.IsSilentKey(); ok {
 		_spec.SetField(member.FieldIsSilentKey, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LicenseClass(); ok {
+		_spec.SetField(member.FieldLicenseClass, field.TypeString, value)
+	}
+	if _u.mutation.LicenseClassCleared() {
+		_spec.ClearField(member.FieldLicenseClass, field.TypeString)
 	}
 	_node = &Member{config: _u.config}
 	_spec.Assign = _node.assignValues

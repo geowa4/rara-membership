@@ -2,29 +2,40 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/charmbracelet/huh"
 	"github.com/geowa4/rara-membership/services"
 	"github.com/geowa4/rara-membership/validation"
 	"github.com/spf13/cobra"
 )
 
-var createMemberCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new member",
-	Long:  "Create a new member using an interactive form.",
+var updateMemberCmd = &cobra.Command{
+	Use:   "update [call_sign]",
+	Short: "Update an existing member",
+	Long:  "Update an existing active member using their call sign.",
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		callSignArg := args[0]
+
+		// Find the member by call sign
+		member, err := services.GetActiveMemberByCallSign(callSignArg)
+		if err != nil {
+			return fmt.Errorf("failed to find active member with call sign %s: %w", callSignArg, err)
+		}
+
+		// Pre-populate form with current values
 		var (
-			name           string
-			email          string
-			phone          string
-			mailingAddress string
-			callSign       string
-			frn            string
-			isActive       bool = true
-			isSilentKey    bool = false
-			licenseClass   string
+			name           = member.Name
+			email          = member.Email
+			phone          = member.Phone
+			mailingAddress = member.MailingAddress
+			callSign       = member.CallSign
+			frn            = member.Frn
+			isActive       = member.IsActive
+			isSilentKey    = member.IsSilentKey
+			licenseClass   = member.LicenseClass
 		)
+
+		fmt.Printf("📝 Updating member: %s (%s)\n\n", member.Name, member.CallSign)
 
 		form := huh.NewForm(
 			huh.NewGroup(
@@ -53,7 +64,7 @@ var createMemberCmd = &cobra.Command{
 
 				huh.NewInput().
 					Title("Mailing Address").
-					Description("Enter the member's mailing address (optional)").
+					Description("Enter the member's mailing address").
 					Value(&mailingAddress).
 					Placeholder("123 Main St, City, State 12345"),
 
@@ -100,34 +111,32 @@ var createMemberCmd = &cobra.Command{
 			),
 		)
 
-		err := form.Run()
+		err = form.Run()
 		if err != nil {
 			return fmt.Errorf("form error: %w", err)
 		}
 
-		// Create the member
-		member, err := services.CreateMember(name, email, phone, mailingAddress, callSign, frn, isActive, isSilentKey, licenseClass)
+		// Update the member
+		updatedMember, err := services.UpdateMember(member.ID, name, email, phone, mailingAddress, callSign, frn, isActive, isSilentKey, licenseClass)
 		if err != nil {
-			return fmt.Errorf("failed to create member: %w", err)
+			return fmt.Errorf("failed to update member: %w", err)
 		}
 
-		fmt.Printf("\n✅ Member created successfully!\n")
-		fmt.Printf("ID: %d\n", member.ID)
-		fmt.Printf("Name: %s\n", member.Name)
-		fmt.Printf("Email: %s\n", member.Email)
-		fmt.Printf("Phone: %s\n", member.Phone)
-		if member.MailingAddress != "" {
-			fmt.Printf("Mailing Address: %s\n", member.MailingAddress)
+		fmt.Printf("\n✅ Member updated successfully!\n")
+		fmt.Printf("ID: %d\n", updatedMember.ID)
+		fmt.Printf("Name: %s\n", updatedMember.Name)
+		fmt.Printf("Email: %s\n", updatedMember.Email)
+		fmt.Printf("Phone: %s\n", updatedMember.Phone)
+		fmt.Printf("Address: %s\n", updatedMember.MailingAddress)
+		if updatedMember.CallSign != "" {
+			fmt.Printf("Call Sign: %s\n", updatedMember.CallSign)
 		}
-		if member.CallSign != "" {
-			fmt.Printf("Call Sign: %s\n", member.CallSign)
+		fmt.Printf("FRN: %s\n", updatedMember.Frn)
+		if updatedMember.LicenseClass != "" {
+			fmt.Printf("License Class: %s\n", updatedMember.LicenseClass)
 		}
-		fmt.Printf("FRN: %s\n", member.Frn)
-		if member.LicenseClass != "" {
-			fmt.Printf("License Class: %s\n", member.LicenseClass)
-		}
-		fmt.Printf("Active: %t\n", member.IsActive)
-		fmt.Printf("Silent Key: %t\n", member.IsSilentKey)
+		fmt.Printf("Active: %t\n", updatedMember.IsActive)
+		fmt.Printf("Silent Key: %t\n", updatedMember.IsSilentKey)
 
 		return nil
 	},

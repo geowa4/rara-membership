@@ -13,11 +13,13 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString},
-		{Name: "phone", Type: field.TypeString},
-		{Name: "call_sign", Type: field.TypeString},
-		{Name: "frn", Type: field.TypeString},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
+		{Name: "mailing_address", Type: field.TypeString, Nullable: true},
+		{Name: "call_sign", Type: field.TypeString, Nullable: true},
+		{Name: "frn", Type: field.TypeString, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_silent_key", Type: field.TypeBool, Default: false},
+		{Name: "license_class", Type: field.TypeString, Nullable: true},
 	}
 	// MembersTable holds the schema information for the "members" table.
 	MembersTable = &schema.Table{
@@ -28,7 +30,7 @@ var (
 			{
 				Name:    "member_call_sign_is_active",
 				Unique:  false,
-				Columns: []*schema.Column{MembersColumns[4], MembersColumns[6]},
+				Columns: []*schema.Column{MembersColumns[5], MembersColumns[7]},
 			},
 		},
 	}

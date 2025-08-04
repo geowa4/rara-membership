@@ -17,6 +17,8 @@ const (
 	FieldEmail = "email"
 	// FieldPhone holds the string denoting the phone field in the database.
 	FieldPhone = "phone"
+	// FieldMailingAddress holds the string denoting the mailing_address field in the database.
+	FieldMailingAddress = "mailing_address"
 	// FieldCallSign holds the string denoting the call_sign field in the database.
 	FieldCallSign = "call_sign"
 	// FieldFrn holds the string denoting the frn field in the database.
@@ -25,6 +27,8 @@ const (
 	FieldIsActive = "is_active"
 	// FieldIsSilentKey holds the string denoting the is_silent_key field in the database.
 	FieldIsSilentKey = "is_silent_key"
+	// FieldLicenseClass holds the string denoting the license_class field in the database.
+	FieldLicenseClass = "license_class"
 	// Table holds the table name of the member in the database.
 	Table = "members"
 )
@@ -35,10 +39,12 @@ var Columns = []string{
 	FieldName,
 	FieldEmail,
 	FieldPhone,
+	FieldMailingAddress,
 	FieldCallSign,
 	FieldFrn,
 	FieldIsActive,
 	FieldIsSilentKey,
+	FieldLicenseClass,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -52,10 +58,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	EmailValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 	// DefaultIsSilentKey holds the default value on creation for the "is_silent_key" field.
 	DefaultIsSilentKey bool
+	// LicenseClassValidator is a validator for the "license_class" field. It is called by the builders before save.
+	LicenseClassValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Member queries.
@@ -81,6 +91,11 @@ func ByPhone(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPhone, opts...).ToFunc()
 }
 
+// ByMailingAddress orders the results by the mailing_address field.
+func ByMailingAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMailingAddress, opts...).ToFunc()
+}
+
 // ByCallSign orders the results by the call_sign field.
 func ByCallSign(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCallSign, opts...).ToFunc()
@@ -99,4 +114,9 @@ func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
 // ByIsSilentKey orders the results by the is_silent_key field.
 func ByIsSilentKey(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSilentKey, opts...).ToFunc()
+}
+
+// ByLicenseClass orders the results by the license_class field.
+func ByLicenseClass(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLicenseClass, opts...).ToFunc()
 }

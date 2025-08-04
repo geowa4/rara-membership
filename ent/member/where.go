@@ -67,6 +67,11 @@ func Phone(v string) predicate.Member {
 	return predicate.Member(sql.FieldEQ(FieldPhone, v))
 }
 
+// MailingAddress applies equality check predicate on the "mailing_address" field. It's identical to MailingAddressEQ.
+func MailingAddress(v string) predicate.Member {
+	return predicate.Member(sql.FieldEQ(FieldMailingAddress, v))
+}
+
 // CallSign applies equality check predicate on the "call_sign" field. It's identical to CallSignEQ.
 func CallSign(v string) predicate.Member {
 	return predicate.Member(sql.FieldEQ(FieldCallSign, v))
@@ -85,6 +90,11 @@ func IsActive(v bool) predicate.Member {
 // IsSilentKey applies equality check predicate on the "is_silent_key" field. It's identical to IsSilentKeyEQ.
 func IsSilentKey(v bool) predicate.Member {
 	return predicate.Member(sql.FieldEQ(FieldIsSilentKey, v))
+}
+
+// LicenseClass applies equality check predicate on the "license_class" field. It's identical to LicenseClassEQ.
+func LicenseClass(v string) predicate.Member {
+	return predicate.Member(sql.FieldEQ(FieldLicenseClass, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -272,6 +282,16 @@ func PhoneHasSuffix(v string) predicate.Member {
 	return predicate.Member(sql.FieldHasSuffix(FieldPhone, v))
 }
 
+// PhoneIsNil applies the IsNil predicate on the "phone" field.
+func PhoneIsNil() predicate.Member {
+	return predicate.Member(sql.FieldIsNull(FieldPhone))
+}
+
+// PhoneNotNil applies the NotNil predicate on the "phone" field.
+func PhoneNotNil() predicate.Member {
+	return predicate.Member(sql.FieldNotNull(FieldPhone))
+}
+
 // PhoneEqualFold applies the EqualFold predicate on the "phone" field.
 func PhoneEqualFold(v string) predicate.Member {
 	return predicate.Member(sql.FieldEqualFold(FieldPhone, v))
@@ -280,6 +300,81 @@ func PhoneEqualFold(v string) predicate.Member {
 // PhoneContainsFold applies the ContainsFold predicate on the "phone" field.
 func PhoneContainsFold(v string) predicate.Member {
 	return predicate.Member(sql.FieldContainsFold(FieldPhone, v))
+}
+
+// MailingAddressEQ applies the EQ predicate on the "mailing_address" field.
+func MailingAddressEQ(v string) predicate.Member {
+	return predicate.Member(sql.FieldEQ(FieldMailingAddress, v))
+}
+
+// MailingAddressNEQ applies the NEQ predicate on the "mailing_address" field.
+func MailingAddressNEQ(v string) predicate.Member {
+	return predicate.Member(sql.FieldNEQ(FieldMailingAddress, v))
+}
+
+// MailingAddressIn applies the In predicate on the "mailing_address" field.
+func MailingAddressIn(vs ...string) predicate.Member {
+	return predicate.Member(sql.FieldIn(FieldMailingAddress, vs...))
+}
+
+// MailingAddressNotIn applies the NotIn predicate on the "mailing_address" field.
+func MailingAddressNotIn(vs ...string) predicate.Member {
+	return predicate.Member(sql.FieldNotIn(FieldMailingAddress, vs...))
+}
+
+// MailingAddressGT applies the GT predicate on the "mailing_address" field.
+func MailingAddressGT(v string) predicate.Member {
+	return predicate.Member(sql.FieldGT(FieldMailingAddress, v))
+}
+
+// MailingAddressGTE applies the GTE predicate on the "mailing_address" field.
+func MailingAddressGTE(v string) predicate.Member {
+	return predicate.Member(sql.FieldGTE(FieldMailingAddress, v))
+}
+
+// MailingAddressLT applies the LT predicate on the "mailing_address" field.
+func MailingAddressLT(v string) predicate.Member {
+	return predicate.Member(sql.FieldLT(FieldMailingAddress, v))
+}
+
+// MailingAddressLTE applies the LTE predicate on the "mailing_address" field.
+func MailingAddressLTE(v string) predicate.Member {
+	return predicate.Member(sql.FieldLTE(FieldMailingAddress, v))
+}
+
+// MailingAddressContains applies the Contains predicate on the "mailing_address" field.
+func MailingAddressContains(v string) predicate.Member {
+	return predicate.Member(sql.FieldContains(FieldMailingAddress, v))
+}
+
+// MailingAddressHasPrefix applies the HasPrefix predicate on the "mailing_address" field.
+func MailingAddressHasPrefix(v string) predicate.Member {
+	return predicate.Member(sql.FieldHasPrefix(FieldMailingAddress, v))
+}
+
+// MailingAddressHasSuffix applies the HasSuffix predicate on the "mailing_address" field.
+func MailingAddressHasSuffix(v string) predicate.Member {
+	return predicate.Member(sql.FieldHasSuffix(FieldMailingAddress, v))
+}
+
+// MailingAddressIsNil applies the IsNil predicate on the "mailing_address" field.
+func MailingAddressIsNil() predicate.Member {
+	return predicate.Member(sql.FieldIsNull(FieldMailingAddress))
+}
+
+// MailingAddressNotNil applies the NotNil predicate on the "mailing_address" field.
+func MailingAddressNotNil() predicate.Member {
+	return predicate.Member(sql.FieldNotNull(FieldMailingAddress))
+}
+
+// MailingAddressEqualFold applies the EqualFold predicate on the "mailing_address" field.
+func MailingAddressEqualFold(v string) predicate.Member {
+	return predicate.Member(sql.FieldEqualFold(FieldMailingAddress, v))
+}
+
+// MailingAddressContainsFold applies the ContainsFold predicate on the "mailing_address" field.
+func MailingAddressContainsFold(v string) predicate.Member {
+	return predicate.Member(sql.FieldContainsFold(FieldMailingAddress, v))
 }
 
 // CallSignEQ applies the EQ predicate on the "call_sign" field.
@@ -335,6 +430,16 @@ func CallSignHasPrefix(v string) predicate.Member {
 // CallSignHasSuffix applies the HasSuffix predicate on the "call_sign" field.
 func CallSignHasSuffix(v string) predicate.Member {
 	return predicate.Member(sql.FieldHasSuffix(FieldCallSign, v))
+}
+
+// CallSignIsNil applies the IsNil predicate on the "call_sign" field.
+func CallSignIsNil() predicate.Member {
+	return predicate.Member(sql.FieldIsNull(FieldCallSign))
+}
+
+// CallSignNotNil applies the NotNil predicate on the "call_sign" field.
+func CallSignNotNil() predicate.Member {
+	return predicate.Member(sql.FieldNotNull(FieldCallSign))
 }
 
 // CallSignEqualFold applies the EqualFold predicate on the "call_sign" field.
@@ -402,6 +507,16 @@ func FrnHasSuffix(v string) predicate.Member {
 	return predicate.Member(sql.FieldHasSuffix(FieldFrn, v))
 }
 
+// FrnIsNil applies the IsNil predicate on the "frn" field.
+func FrnIsNil() predicate.Member {
+	return predicate.Member(sql.FieldIsNull(FieldFrn))
+}
+
+// FrnNotNil applies the NotNil predicate on the "frn" field.
+func FrnNotNil() predicate.Member {
+	return predicate.Member(sql.FieldNotNull(FieldFrn))
+}
+
 // FrnEqualFold applies the EqualFold predicate on the "frn" field.
 func FrnEqualFold(v string) predicate.Member {
 	return predicate.Member(sql.FieldEqualFold(FieldFrn, v))
@@ -430,6 +545,81 @@ func IsSilentKeyEQ(v bool) predicate.Member {
 // IsSilentKeyNEQ applies the NEQ predicate on the "is_silent_key" field.
 func IsSilentKeyNEQ(v bool) predicate.Member {
 	return predicate.Member(sql.FieldNEQ(FieldIsSilentKey, v))
+}
+
+// LicenseClassEQ applies the EQ predicate on the "license_class" field.
+func LicenseClassEQ(v string) predicate.Member {
+	return predicate.Member(sql.FieldEQ(FieldLicenseClass, v))
+}
+
+// LicenseClassNEQ applies the NEQ predicate on the "license_class" field.
+func LicenseClassNEQ(v string) predicate.Member {
+	return predicate.Member(sql.FieldNEQ(FieldLicenseClass, v))
+}
+
+// LicenseClassIn applies the In predicate on the "license_class" field.
+func LicenseClassIn(vs ...string) predicate.Member {
+	return predicate.Member(sql.FieldIn(FieldLicenseClass, vs...))
+}
+
+// LicenseClassNotIn applies the NotIn predicate on the "license_class" field.
+func LicenseClassNotIn(vs ...string) predicate.Member {
+	return predicate.Member(sql.FieldNotIn(FieldLicenseClass, vs...))
+}
+
+// LicenseClassGT applies the GT predicate on the "license_class" field.
+func LicenseClassGT(v string) predicate.Member {
+	return predicate.Member(sql.FieldGT(FieldLicenseClass, v))
+}
+
+// LicenseClassGTE applies the GTE predicate on the "license_class" field.
+func LicenseClassGTE(v string) predicate.Member {
+	return predicate.Member(sql.FieldGTE(FieldLicenseClass, v))
+}
+
+// LicenseClassLT applies the LT predicate on the "license_class" field.
+func LicenseClassLT(v string) predicate.Member {
+	return predicate.Member(sql.FieldLT(FieldLicenseClass, v))
+}
+
+// LicenseClassLTE applies the LTE predicate on the "license_class" field.
+func LicenseClassLTE(v string) predicate.Member {
+	return predicate.Member(sql.FieldLTE(FieldLicenseClass, v))
+}
+
+// LicenseClassContains applies the Contains predicate on the "license_class" field.
+func LicenseClassContains(v string) predicate.Member {
+	return predicate.Member(sql.FieldContains(FieldLicenseClass, v))
+}
+
+// LicenseClassHasPrefix applies the HasPrefix predicate on the "license_class" field.
+func LicenseClassHasPrefix(v string) predicate.Member {
+	return predicate.Member(sql.FieldHasPrefix(FieldLicenseClass, v))
+}
+
+// LicenseClassHasSuffix applies the HasSuffix predicate on the "license_class" field.
+func LicenseClassHasSuffix(v string) predicate.Member {
+	return predicate.Member(sql.FieldHasSuffix(FieldLicenseClass, v))
+}
+
+// LicenseClassIsNil applies the IsNil predicate on the "license_class" field.
+func LicenseClassIsNil() predicate.Member {
+	return predicate.Member(sql.FieldIsNull(FieldLicenseClass))
+}
+
+// LicenseClassNotNil applies the NotNil predicate on the "license_class" field.
+func LicenseClassNotNil() predicate.Member {
+	return predicate.Member(sql.FieldNotNull(FieldLicenseClass))
+}
+
+// LicenseClassEqualFold applies the EqualFold predicate on the "license_class" field.
+func LicenseClassEqualFold(v string) predicate.Member {
+	return predicate.Member(sql.FieldEqualFold(FieldLicenseClass, v))
+}
+
+// LicenseClassContainsFold applies the ContainsFold predicate on the "license_class" field.
+func LicenseClassContainsFold(v string) predicate.Member {
+	return predicate.Member(sql.FieldContainsFold(FieldLicenseClass, v))
 }
 
 // And groups predicates with the AND operator between them.

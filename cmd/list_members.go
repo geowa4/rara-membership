@@ -11,7 +11,7 @@ import (
 )
 
 var listMembersCmd = &cobra.Command{
-	Use:   "list-members",
+	Use:   "list",
 	Short: "List all active members",
 	Long:  "Display a list of all active members in the database.",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -19,7 +19,7 @@ var listMembersCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed querying members: %w", err)
 		}
-		
+
 		if len(members) == 0 {
 			fmt.Println("No active members found.")
 			return nil
@@ -27,11 +27,11 @@ var listMembersCmd = &cobra.Command{
 
 		// Define colors and styles
 		var (
-			purple      = lipgloss.Color("99")
-			gray        = lipgloss.Color("245")
-			lightGray   = lipgloss.Color("241")
-			green       = lipgloss.Color("42")
-			
+			purple    = lipgloss.Color("99")
+			gray      = lipgloss.Color("245")
+			lightGray = lipgloss.Color("241")
+			green     = lipgloss.Color("42")
+
 			headerStyle  = lipgloss.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
 			cellStyle    = lipgloss.NewStyle().Padding(0, 1)
 			oddRowStyle  = cellStyle.Foreground(gray)
@@ -45,13 +45,28 @@ var listMembersCmd = &cobra.Command{
 			if !m.IsActive {
 				activeStatus = "✗"
 			}
+			silentKeyStatus := ""
+			if m.IsSilentKey {
+				silentKeyStatus = "sk"
+			}
+			callSign := m.CallSign
+			if callSign == "" {
+				callSign = "-"
+			}
+			licenseClass := m.LicenseClass
+			if licenseClass == "" {
+				licenseClass = "-"
+			}
 			rows[i] = []string{
 				strconv.Itoa(m.ID),
 				m.Name,
-				m.CallSign,
+				callSign,
 				m.Email,
 				m.Phone,
+				m.Frn,
+				licenseClass,
 				activeStatus,
+				silentKeyStatus,
 			}
 		}
 
@@ -69,7 +84,7 @@ var listMembersCmd = &cobra.Command{
 					return oddRowStyle
 				}
 			}).
-			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "ACTIVE").
+			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "FRN", "LICENSE", "ACTIVE", "SILENT KEY").
 			Rows(rows...)
 
 		// Print title and table
@@ -77,10 +92,10 @@ var listMembersCmd = &cobra.Command{
 			Foreground(green).
 			Bold(true).
 			MarginBottom(1)
-		
+
 		fmt.Println(titleStyle.Render(fmt.Sprintf("📻 Active Members (%d)", len(members))))
 		fmt.Println(t)
-		
+
 		return nil
 	},
 }
