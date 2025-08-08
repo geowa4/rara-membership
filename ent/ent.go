@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
 )
 
@@ -73,6 +74,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			event.Table:  event.ValidColumn,
 			member.Table: member.ValidColumn,
 		})
 	})

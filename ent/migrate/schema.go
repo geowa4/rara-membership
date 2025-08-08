@@ -8,6 +8,22 @@ import (
 )
 
 var (
+	// EventsColumns holds the columns for the "events" table.
+	EventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "date", Type: field.TypeTime},
+		{Name: "latitude", Type: field.TypeFloat64, Default: 0},
+		{Name: "longitude", Type: field.TypeFloat64, Default: 0},
+		{Name: "default_points_allocated", Type: field.TypeInt8, Default: 10},
+	}
+	// EventsTable holds the schema information for the "events" table.
+	EventsTable = &schema.Table{
+		Name:       "events",
+		Columns:    EventsColumns,
+		PrimaryKey: []*schema.Column{EventsColumns[0]},
+	}
 	// MembersColumns holds the columns for the "members" table.
 	MembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -36,6 +52,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		EventsTable,
 		MembersTable,
 	}
 )

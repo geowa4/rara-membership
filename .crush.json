@@ -3,6 +3,9 @@
   "lsp": {
     "go": {
       "command": "gopls"
+    },
+    "golangci": {
+      "command": "golangci-lint-langserver"
     }
   },
   "mcp": {

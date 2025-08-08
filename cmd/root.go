@@ -20,5 +20,6 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(memberCmd)
+	rootCmd.AddCommand(eventCmd)
 	rootCmd.AddCommand(serveCmd)
 }

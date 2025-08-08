@@ -3,6 +3,9 @@
 package ent
 
 import (
+	"time"
+
+	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/schema"
 )
@@ -11,6 +14,80 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	eventFields := schema.Event{}.Fields()
+	_ = eventFields
+	// eventDescName is the schema descriptor for name field.
+	eventDescName := eventFields[0].Descriptor()
+	// event.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	event.NameValidator = eventDescName.Validators[0].(func(string) error)
+	// eventDescDescription is the schema descriptor for description field.
+	eventDescDescription := eventFields[1].Descriptor()
+	// event.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	event.DescriptionValidator = eventDescDescription.Validators[0].(func(string) error)
+	// eventDescDate is the schema descriptor for date field.
+	eventDescDate := eventFields[2].Descriptor()
+	// event.DefaultDate holds the default value on creation for the date field.
+	event.DefaultDate = eventDescDate.Default.(func() time.Time)
+	// eventDescLatitude is the schema descriptor for latitude field.
+	eventDescLatitude := eventFields[3].Descriptor()
+	// event.DefaultLatitude holds the default value on creation for the latitude field.
+	event.DefaultLatitude = eventDescLatitude.Default.(float64)
+	// event.LatitudeValidator is a validator for the "latitude" field. It is called by the builders before save.
+	event.LatitudeValidator = func() func(float64) error {
+		validators := eventDescLatitude.Validators
+		fns := [...]func(float64) error{
+			validators[0].(func(float64) error),
+			validators[1].(func(float64) error),
+		}
+		return func(latitude float64) error {
+			for _, fn := range fns {
+				if err := fn(latitude); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// eventDescLongitude is the schema descriptor for longitude field.
+	eventDescLongitude := eventFields[4].Descriptor()
+	// event.DefaultLongitude holds the default value on creation for the longitude field.
+	event.DefaultLongitude = eventDescLongitude.Default.(float64)
+	// event.LongitudeValidator is a validator for the "longitude" field. It is called by the builders before save.
+	event.LongitudeValidator = func() func(float64) error {
+		validators := eventDescLongitude.Validators
+		fns := [...]func(float64) error{
+			validators[0].(func(float64) error),
+			validators[1].(func(float64) error),
+		}
+		return func(longitude float64) error {
+			for _, fn := range fns {
+				if err := fn(longitude); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// eventDescDefaultPointsAllocated is the schema descriptor for default_points_allocated field.
+	eventDescDefaultPointsAllocated := eventFields[5].Descriptor()
+	// event.DefaultDefaultPointsAllocated holds the default value on creation for the default_points_allocated field.
+	event.DefaultDefaultPointsAllocated = eventDescDefaultPointsAllocated.Default.(int8)
+	// event.DefaultPointsAllocatedValidator is a validator for the "default_points_allocated" field. It is called by the builders before save.
+	event.DefaultPointsAllocatedValidator = func() func(int8) error {
+		validators := eventDescDefaultPointsAllocated.Validators
+		fns := [...]func(int8) error{
+			validators[0].(func(int8) error),
+			validators[1].(func(int8) error),
+		}
+		return func(default_points_allocated int8) error {
+			for _, fn := range fns {
+				if err := fn(default_points_allocated); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	memberFields := schema.Member{}.Fields()
 	_ = memberFields
 	// memberDescEmail is the schema descriptor for email field.
