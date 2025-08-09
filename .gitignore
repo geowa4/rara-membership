@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+rara-membership
 
 # Test binary, built with `go test -c`
 *.test
@@ -24,3 +25,6 @@ go.work
 *.db
 *.sqlite
 *.sqlite3
+
+# Claude Code local settings
+.claude/settings.local.json
