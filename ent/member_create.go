@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 )
 
 // MemberCreate is the builder for creating a Member entity.
@@ -143,6 +144,21 @@ func (_c *MemberCreate) AddPointAllocations(v ...*PointAllocation) *MemberCreate
 		ids[i] = v[i].ID
 	}
 	return _c.AddPointAllocationIDs(ids...)
+}
+
+// AddPointDeductionIDs adds the "point_deductions" edge to the PointDeduction entity by IDs.
+func (_c *MemberCreate) AddPointDeductionIDs(ids ...int) *MemberCreate {
+	_c.mutation.AddPointDeductionIDs(ids...)
+	return _c
+}
+
+// AddPointDeductions adds the "point_deductions" edges to the PointDeduction entity.
+func (_c *MemberCreate) AddPointDeductions(v ...*PointDeduction) *MemberCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPointDeductionIDs(ids...)
 }
 
 // Mutation returns the MemberMutation object of the builder.
@@ -288,6 +304,22 @@ func (_c *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PointDeductionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

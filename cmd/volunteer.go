@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	eventID  int
-	memberID int
-	points   int
+	eventID          int
+	memberID         int
+	points           int
 	useDefaultPoints bool
-	notes    string
+	notes            string
 )
 
 // volunteerCmd represents the volunteer command
@@ -36,7 +36,7 @@ Examples:
   rara-membership volunteer -e 5 -m 1 -p 15`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		
+
 		// Create service using the global database client
 		pointService := services.NewPointAllocationService(database.Client)
 
@@ -57,7 +57,7 @@ Examples:
 		fmt.Printf("Member: %s\n", allocation.Edges.Member.Name)
 		fmt.Printf("Event: %s\n", allocation.Edges.Event.Name)
 		fmt.Printf("Points: %d\n", allocation.Points)
-		
+
 		if allocation.Notes != "" {
 			fmt.Printf("Notes: %s\n", allocation.Notes)
 		}

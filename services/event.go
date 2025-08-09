@@ -70,4 +70,3 @@ func DeleteEvent(id int) error {
 	ctx := context.Background()
 	return database.Client.Event.DeleteOneID(id).Exec(ctx)
 }
-

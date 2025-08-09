@@ -15,6 +15,7 @@ import (
 	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -78,6 +79,7 @@ func checkColumn(t, c string) error {
 			event.Table:           event.ValidColumn,
 			member.Table:          member.ValidColumn,
 			pointallocation.Table: pointallocation.ValidColumn,
+			pointdeduction.Table:  pointdeduction.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

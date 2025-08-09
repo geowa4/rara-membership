@@ -56,6 +56,9 @@ func (Member) Edges() []ent.Edge {
 		edge.From("point_allocations", PointAllocation.Type).
 			Ref("member").
 			Comment("Point allocations received by this member"),
+		edge.From("point_deductions", PointDeduction.Type).
+			Ref("member").
+			Comment("Point deductions for redemptions by this member"),
 	}
 }
 

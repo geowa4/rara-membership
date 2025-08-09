@@ -646,6 +646,29 @@ func HasPointAllocationsWith(preds ...predicate.PointAllocation) predicate.Membe
 	})
 }
 
+// HasPointDeductions applies the HasEdge predicate on the "point_deductions" edge.
+func HasPointDeductions() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, PointDeductionsTable, PointDeductionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPointDeductionsWith applies the HasEdge predicate on the "point_deductions" edge with a given conditions (other predicates).
+func HasPointDeductionsWith(preds ...predicate.PointDeduction) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		step := newPointDeductionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Member) predicate.Member {
 	return predicate.Member(sql.AndPredicates(predicates...))

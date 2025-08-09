@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
@@ -199,6 +200,21 @@ func (_u *MemberUpdate) AddPointAllocations(v ...*PointAllocation) *MemberUpdate
 	return _u.AddPointAllocationIDs(ids...)
 }
 
+// AddPointDeductionIDs adds the "point_deductions" edge to the PointDeduction entity by IDs.
+func (_u *MemberUpdate) AddPointDeductionIDs(ids ...int) *MemberUpdate {
+	_u.mutation.AddPointDeductionIDs(ids...)
+	return _u
+}
+
+// AddPointDeductions adds the "point_deductions" edges to the PointDeduction entity.
+func (_u *MemberUpdate) AddPointDeductions(v ...*PointDeduction) *MemberUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPointDeductionIDs(ids...)
+}
+
 // Mutation returns the MemberMutation object of the builder.
 func (_u *MemberUpdate) Mutation() *MemberMutation {
 	return _u.mutation
@@ -223,6 +239,27 @@ func (_u *MemberUpdate) RemovePointAllocations(v ...*PointAllocation) *MemberUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePointAllocationIDs(ids...)
+}
+
+// ClearPointDeductions clears all "point_deductions" edges to the PointDeduction entity.
+func (_u *MemberUpdate) ClearPointDeductions() *MemberUpdate {
+	_u.mutation.ClearPointDeductions()
+	return _u
+}
+
+// RemovePointDeductionIDs removes the "point_deductions" edge to PointDeduction entities by IDs.
+func (_u *MemberUpdate) RemovePointDeductionIDs(ids ...int) *MemberUpdate {
+	_u.mutation.RemovePointDeductionIDs(ids...)
+	return _u
+}
+
+// RemovePointDeductions removes "point_deductions" edges to PointDeduction entities.
+func (_u *MemberUpdate) RemovePointDeductions(v ...*PointDeduction) *MemberUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePointDeductionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -359,6 +396,51 @@ func (_u *MemberUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PointDeductionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPointDeductionsIDs(); len(nodes) > 0 && !_u.mutation.PointDeductionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PointDeductionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -557,6 +639,21 @@ func (_u *MemberUpdateOne) AddPointAllocations(v ...*PointAllocation) *MemberUpd
 	return _u.AddPointAllocationIDs(ids...)
 }
 
+// AddPointDeductionIDs adds the "point_deductions" edge to the PointDeduction entity by IDs.
+func (_u *MemberUpdateOne) AddPointDeductionIDs(ids ...int) *MemberUpdateOne {
+	_u.mutation.AddPointDeductionIDs(ids...)
+	return _u
+}
+
+// AddPointDeductions adds the "point_deductions" edges to the PointDeduction entity.
+func (_u *MemberUpdateOne) AddPointDeductions(v ...*PointDeduction) *MemberUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPointDeductionIDs(ids...)
+}
+
 // Mutation returns the MemberMutation object of the builder.
 func (_u *MemberUpdateOne) Mutation() *MemberMutation {
 	return _u.mutation
@@ -581,6 +678,27 @@ func (_u *MemberUpdateOne) RemovePointAllocations(v ...*PointAllocation) *Member
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePointAllocationIDs(ids...)
+}
+
+// ClearPointDeductions clears all "point_deductions" edges to the PointDeduction entity.
+func (_u *MemberUpdateOne) ClearPointDeductions() *MemberUpdateOne {
+	_u.mutation.ClearPointDeductions()
+	return _u
+}
+
+// RemovePointDeductionIDs removes the "point_deductions" edge to PointDeduction entities by IDs.
+func (_u *MemberUpdateOne) RemovePointDeductionIDs(ids ...int) *MemberUpdateOne {
+	_u.mutation.RemovePointDeductionIDs(ids...)
+	return _u
+}
+
+// RemovePointDeductions removes "point_deductions" edges to PointDeduction entities.
+func (_u *MemberUpdateOne) RemovePointDeductions(v ...*PointDeduction) *MemberUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePointDeductionIDs(ids...)
 }
 
 // Where appends a list predicates to the MemberUpdate builder.
@@ -747,6 +865,51 @@ func (_u *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PointDeductionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPointDeductionsIDs(); len(nodes) > 0 && !_u.mutation.PointDeductionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PointDeductionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointDeductionsTable,
+			Columns: []string{member.PointDeductionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointdeduction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

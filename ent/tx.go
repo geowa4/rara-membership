@@ -18,6 +18,8 @@ type Tx struct {
 	Member *MemberClient
 	// PointAllocation is the client for interacting with the PointAllocation builders.
 	PointAllocation *PointAllocationClient
+	// PointDeduction is the client for interacting with the PointDeduction builders.
+	PointDeduction *PointDeductionClient
 
 	// lazily loaded.
 	client     *Client
@@ -152,6 +154,7 @@ func (tx *Tx) init() {
 	tx.Event = NewEventClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.PointAllocation = NewPointAllocationClient(tx.config)
+	tx.PointDeduction = NewPointDeductionClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

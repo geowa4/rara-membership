@@ -8,6 +8,7 @@ import (
 	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 	"github.com/geowa4/rara-membership/ent/schema"
 )
 
@@ -133,6 +134,16 @@ func init() {
 	pointallocationDescCreatedAt := pointallocationFields[2].Descriptor()
 	// pointallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pointallocation.DefaultCreatedAt = pointallocationDescCreatedAt.Default.(func() time.Time)
+	pointdeductionFields := schema.PointDeduction{}.Fields()
+	_ = pointdeductionFields
+	// pointdeductionDescPoints is the schema descriptor for points field.
+	pointdeductionDescPoints := pointdeductionFields[0].Descriptor()
+	// pointdeduction.PointsValidator is a validator for the "points" field. It is called by the builders before save.
+	pointdeduction.PointsValidator = pointdeductionDescPoints.Validators[0].(func(int) error)
+	// pointdeductionDescCreatedAt is the schema descriptor for created_at field.
+	pointdeductionDescCreatedAt := pointdeductionFields[2].Descriptor()
+	// pointdeduction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pointdeduction.DefaultCreatedAt = pointdeductionDescCreatedAt.Default.(func() time.Time)
 }
 
 const (

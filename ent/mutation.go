@@ -14,6 +14,7 @@ import (
 	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
@@ -29,6 +30,7 @@ const (
 	TypeEvent           = "Event"
 	TypeMember          = "Member"
 	TypePointAllocation = "PointAllocation"
+	TypePointDeduction  = "PointDeduction"
 )
 
 // EventMutation represents an operation that mutates the Event nodes in the graph.
@@ -841,6 +843,9 @@ type MemberMutation struct {
 	point_allocations        map[int]struct{}
 	removedpoint_allocations map[int]struct{}
 	clearedpoint_allocations bool
+	point_deductions         map[int]struct{}
+	removedpoint_deductions  map[int]struct{}
+	clearedpoint_deductions  bool
 	done                     bool
 	oldValue                 func(context.Context) (*Member, error)
 	predicates               []predicate.Member
@@ -1387,6 +1392,60 @@ func (m *MemberMutation) ResetPointAllocations() {
 	m.removedpoint_allocations = nil
 }
 
+// AddPointDeductionIDs adds the "point_deductions" edge to the PointDeduction entity by ids.
+func (m *MemberMutation) AddPointDeductionIDs(ids ...int) {
+	if m.point_deductions == nil {
+		m.point_deductions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.point_deductions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPointDeductions clears the "point_deductions" edge to the PointDeduction entity.
+func (m *MemberMutation) ClearPointDeductions() {
+	m.clearedpoint_deductions = true
+}
+
+// PointDeductionsCleared reports if the "point_deductions" edge to the PointDeduction entity was cleared.
+func (m *MemberMutation) PointDeductionsCleared() bool {
+	return m.clearedpoint_deductions
+}
+
+// RemovePointDeductionIDs removes the "point_deductions" edge to the PointDeduction entity by IDs.
+func (m *MemberMutation) RemovePointDeductionIDs(ids ...int) {
+	if m.removedpoint_deductions == nil {
+		m.removedpoint_deductions = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.point_deductions, ids[i])
+		m.removedpoint_deductions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPointDeductions returns the removed IDs of the "point_deductions" edge to the PointDeduction entity.
+func (m *MemberMutation) RemovedPointDeductionsIDs() (ids []int) {
+	for id := range m.removedpoint_deductions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PointDeductionsIDs returns the "point_deductions" edge IDs in the mutation.
+func (m *MemberMutation) PointDeductionsIDs() (ids []int) {
+	for id := range m.point_deductions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPointDeductions resets all changes to the "point_deductions" edge.
+func (m *MemberMutation) ResetPointDeductions() {
+	m.point_deductions = nil
+	m.clearedpoint_deductions = false
+	m.removedpoint_deductions = nil
+}
+
 // Where appends a list predicates to the MemberMutation builder.
 func (m *MemberMutation) Where(ps ...predicate.Member) {
 	m.predicates = append(m.predicates, ps...)
@@ -1689,9 +1748,12 @@ func (m *MemberMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MemberMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.point_allocations != nil {
 		edges = append(edges, member.EdgePointAllocations)
+	}
+	if m.point_deductions != nil {
+		edges = append(edges, member.EdgePointDeductions)
 	}
 	return edges
 }
@@ -1706,15 +1768,24 @@ func (m *MemberMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case member.EdgePointDeductions:
+		ids := make([]ent.Value, 0, len(m.point_deductions))
+		for id := range m.point_deductions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MemberMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedpoint_allocations != nil {
 		edges = append(edges, member.EdgePointAllocations)
+	}
+	if m.removedpoint_deductions != nil {
+		edges = append(edges, member.EdgePointDeductions)
 	}
 	return edges
 }
@@ -1729,15 +1800,24 @@ func (m *MemberMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case member.EdgePointDeductions:
+		ids := make([]ent.Value, 0, len(m.removedpoint_deductions))
+		for id := range m.removedpoint_deductions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MemberMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedpoint_allocations {
 		edges = append(edges, member.EdgePointAllocations)
+	}
+	if m.clearedpoint_deductions {
+		edges = append(edges, member.EdgePointDeductions)
 	}
 	return edges
 }
@@ -1748,6 +1828,8 @@ func (m *MemberMutation) EdgeCleared(name string) bool {
 	switch name {
 	case member.EdgePointAllocations:
 		return m.clearedpoint_allocations
+	case member.EdgePointDeductions:
+		return m.clearedpoint_deductions
 	}
 	return false
 }
@@ -1766,6 +1848,9 @@ func (m *MemberMutation) ResetEdge(name string) error {
 	switch name {
 	case member.EdgePointAllocations:
 		m.ResetPointAllocations()
+		return nil
+	case member.EdgePointDeductions:
+		m.ResetPointDeductions()
 		return nil
 	}
 	return fmt.Errorf("unknown Member edge %s", name)
@@ -2387,4 +2472,563 @@ func (m *PointAllocationMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown PointAllocation edge %s", name)
+}
+
+// PointDeductionMutation represents an operation that mutates the PointDeduction nodes in the graph.
+type PointDeductionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	points        *int
+	addpoints     *int
+	notes         *string
+	created_at    *time.Time
+	clearedFields map[string]struct{}
+	member        *int
+	clearedmember bool
+	done          bool
+	oldValue      func(context.Context) (*PointDeduction, error)
+	predicates    []predicate.PointDeduction
+}
+
+var _ ent.Mutation = (*PointDeductionMutation)(nil)
+
+// pointdeductionOption allows management of the mutation configuration using functional options.
+type pointdeductionOption func(*PointDeductionMutation)
+
+// newPointDeductionMutation creates new mutation for the PointDeduction entity.
+func newPointDeductionMutation(c config, op Op, opts ...pointdeductionOption) *PointDeductionMutation {
+	m := &PointDeductionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePointDeduction,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPointDeductionID sets the ID field of the mutation.
+func withPointDeductionID(id int) pointdeductionOption {
+	return func(m *PointDeductionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PointDeduction
+		)
+		m.oldValue = func(ctx context.Context) (*PointDeduction, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PointDeduction.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPointDeduction sets the old PointDeduction of the mutation.
+func withPointDeduction(node *PointDeduction) pointdeductionOption {
+	return func(m *PointDeductionMutation) {
+		m.oldValue = func(context.Context) (*PointDeduction, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PointDeductionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PointDeductionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PointDeductionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PointDeductionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PointDeduction.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPoints sets the "points" field.
+func (m *PointDeductionMutation) SetPoints(i int) {
+	m.points = &i
+	m.addpoints = nil
+}
+
+// Points returns the value of the "points" field in the mutation.
+func (m *PointDeductionMutation) Points() (r int, exists bool) {
+	v := m.points
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPoints returns the old "points" field's value of the PointDeduction entity.
+// If the PointDeduction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PointDeductionMutation) OldPoints(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPoints is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPoints requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPoints: %w", err)
+	}
+	return oldValue.Points, nil
+}
+
+// AddPoints adds i to the "points" field.
+func (m *PointDeductionMutation) AddPoints(i int) {
+	if m.addpoints != nil {
+		*m.addpoints += i
+	} else {
+		m.addpoints = &i
+	}
+}
+
+// AddedPoints returns the value that was added to the "points" field in this mutation.
+func (m *PointDeductionMutation) AddedPoints() (r int, exists bool) {
+	v := m.addpoints
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPoints resets all changes to the "points" field.
+func (m *PointDeductionMutation) ResetPoints() {
+	m.points = nil
+	m.addpoints = nil
+}
+
+// SetNotes sets the "notes" field.
+func (m *PointDeductionMutation) SetNotes(s string) {
+	m.notes = &s
+}
+
+// Notes returns the value of the "notes" field in the mutation.
+func (m *PointDeductionMutation) Notes() (r string, exists bool) {
+	v := m.notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotes returns the old "notes" field's value of the PointDeduction entity.
+// If the PointDeduction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PointDeductionMutation) OldNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotes: %w", err)
+	}
+	return oldValue.Notes, nil
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (m *PointDeductionMutation) ClearNotes() {
+	m.notes = nil
+	m.clearedFields[pointdeduction.FieldNotes] = struct{}{}
+}
+
+// NotesCleared returns if the "notes" field was cleared in this mutation.
+func (m *PointDeductionMutation) NotesCleared() bool {
+	_, ok := m.clearedFields[pointdeduction.FieldNotes]
+	return ok
+}
+
+// ResetNotes resets all changes to the "notes" field.
+func (m *PointDeductionMutation) ResetNotes() {
+	m.notes = nil
+	delete(m.clearedFields, pointdeduction.FieldNotes)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PointDeductionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PointDeductionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PointDeduction entity.
+// If the PointDeduction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PointDeductionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PointDeductionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetMemberID sets the "member" edge to the Member entity by id.
+func (m *PointDeductionMutation) SetMemberID(id int) {
+	m.member = &id
+}
+
+// ClearMember clears the "member" edge to the Member entity.
+func (m *PointDeductionMutation) ClearMember() {
+	m.clearedmember = true
+}
+
+// MemberCleared reports if the "member" edge to the Member entity was cleared.
+func (m *PointDeductionMutation) MemberCleared() bool {
+	return m.clearedmember
+}
+
+// MemberID returns the "member" edge ID in the mutation.
+func (m *PointDeductionMutation) MemberID() (id int, exists bool) {
+	if m.member != nil {
+		return *m.member, true
+	}
+	return
+}
+
+// MemberIDs returns the "member" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MemberID instead. It exists only for internal usage by the builders.
+func (m *PointDeductionMutation) MemberIDs() (ids []int) {
+	if id := m.member; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMember resets all changes to the "member" edge.
+func (m *PointDeductionMutation) ResetMember() {
+	m.member = nil
+	m.clearedmember = false
+}
+
+// Where appends a list predicates to the PointDeductionMutation builder.
+func (m *PointDeductionMutation) Where(ps ...predicate.PointDeduction) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PointDeductionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PointDeductionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PointDeduction, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PointDeductionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PointDeductionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PointDeduction).
+func (m *PointDeductionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PointDeductionMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.points != nil {
+		fields = append(fields, pointdeduction.FieldPoints)
+	}
+	if m.notes != nil {
+		fields = append(fields, pointdeduction.FieldNotes)
+	}
+	if m.created_at != nil {
+		fields = append(fields, pointdeduction.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PointDeductionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pointdeduction.FieldPoints:
+		return m.Points()
+	case pointdeduction.FieldNotes:
+		return m.Notes()
+	case pointdeduction.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PointDeductionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pointdeduction.FieldPoints:
+		return m.OldPoints(ctx)
+	case pointdeduction.FieldNotes:
+		return m.OldNotes(ctx)
+	case pointdeduction.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PointDeduction field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PointDeductionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pointdeduction.FieldPoints:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPoints(v)
+		return nil
+	case pointdeduction.FieldNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotes(v)
+		return nil
+	case pointdeduction.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PointDeduction field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PointDeductionMutation) AddedFields() []string {
+	var fields []string
+	if m.addpoints != nil {
+		fields = append(fields, pointdeduction.FieldPoints)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PointDeductionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pointdeduction.FieldPoints:
+		return m.AddedPoints()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PointDeductionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case pointdeduction.FieldPoints:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPoints(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PointDeduction numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PointDeductionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(pointdeduction.FieldNotes) {
+		fields = append(fields, pointdeduction.FieldNotes)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PointDeductionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PointDeductionMutation) ClearField(name string) error {
+	switch name {
+	case pointdeduction.FieldNotes:
+		m.ClearNotes()
+		return nil
+	}
+	return fmt.Errorf("unknown PointDeduction nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PointDeductionMutation) ResetField(name string) error {
+	switch name {
+	case pointdeduction.FieldPoints:
+		m.ResetPoints()
+		return nil
+	case pointdeduction.FieldNotes:
+		m.ResetNotes()
+		return nil
+	case pointdeduction.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PointDeduction field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PointDeductionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.member != nil {
+		edges = append(edges, pointdeduction.EdgeMember)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PointDeductionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case pointdeduction.EdgeMember:
+		if id := m.member; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PointDeductionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PointDeductionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PointDeductionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedmember {
+		edges = append(edges, pointdeduction.EdgeMember)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PointDeductionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case pointdeduction.EdgeMember:
+		return m.clearedmember
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PointDeductionMutation) ClearEdge(name string) error {
+	switch name {
+	case pointdeduction.EdgeMember:
+		m.ClearMember()
+		return nil
+	}
+	return fmt.Errorf("unknown PointDeduction unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PointDeductionMutation) ResetEdge(name string) error {
+	switch name {
+	case pointdeduction.EdgeMember:
+		m.ResetMember()
+		return nil
+	}
+	return fmt.Errorf("unknown PointDeduction edge %s", name)
 }

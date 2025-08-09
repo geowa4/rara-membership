@@ -14,3 +14,6 @@ type Member func(*sql.Selector)
 
 // PointAllocation is the predicate function for pointallocation builders.
 type PointAllocation func(*sql.Selector)
+
+// PointDeduction is the predicate function for pointdeduction builders.
+type PointDeduction func(*sql.Selector)

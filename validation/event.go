@@ -112,4 +112,3 @@ func ValidatePointsString(str string) error {
 	}
 	return nil
 }
-

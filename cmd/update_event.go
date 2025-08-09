@@ -124,7 +124,6 @@ var updateEventCmd = &cobra.Command{
 			}
 		}
 
-
 		// Parse points
 		defaultPoints, err := strconv.Atoi(defaultPointsStr)
 		if err != nil {
@@ -156,4 +155,3 @@ var updateEventCmd = &cobra.Command{
 		return nil
 	},
 }
-

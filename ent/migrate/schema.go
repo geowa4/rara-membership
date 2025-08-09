@@ -86,15 +86,39 @@ var (
 			},
 		},
 	}
+	// PointDeductionsColumns holds the columns for the "point_deductions" table.
+	PointDeductionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "points", Type: field.TypeInt},
+		{Name: "notes", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "point_deduction_member", Type: field.TypeInt},
+	}
+	// PointDeductionsTable holds the schema information for the "point_deductions" table.
+	PointDeductionsTable = &schema.Table{
+		Name:       "point_deductions",
+		Columns:    PointDeductionsColumns,
+		PrimaryKey: []*schema.Column{PointDeductionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "point_deductions_members_member",
+				Columns:    []*schema.Column{PointDeductionsColumns[4]},
+				RefColumns: []*schema.Column{MembersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		EventsTable,
 		MembersTable,
 		PointAllocationsTable,
+		PointDeductionsTable,
 	}
 )
 
 func init() {
 	PointAllocationsTable.ForeignKeys[0].RefTable = EventsTable
 	PointAllocationsTable.ForeignKeys[1].RefTable = MembersTable
+	PointDeductionsTable.ForeignKeys[0].RefTable = MembersTable
 }

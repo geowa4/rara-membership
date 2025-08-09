@@ -18,6 +18,7 @@ import (
 	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 )
 
 // Client is the client that holds all ent builders.
@@ -31,6 +32,8 @@ type Client struct {
 	Member *MemberClient
 	// PointAllocation is the client for interacting with the PointAllocation builders.
 	PointAllocation *PointAllocationClient
+	// PointDeduction is the client for interacting with the PointDeduction builders.
+	PointDeduction *PointDeductionClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -45,6 +48,7 @@ func (c *Client) init() {
 	c.Event = NewEventClient(c.config)
 	c.Member = NewMemberClient(c.config)
 	c.PointAllocation = NewPointAllocationClient(c.config)
+	c.PointDeduction = NewPointDeductionClient(c.config)
 }
 
 type (
@@ -140,6 +144,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Event:           NewEventClient(cfg),
 		Member:          NewMemberClient(cfg),
 		PointAllocation: NewPointAllocationClient(cfg),
+		PointDeduction:  NewPointDeductionClient(cfg),
 	}, nil
 }
 
@@ -162,6 +167,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Event:           NewEventClient(cfg),
 		Member:          NewMemberClient(cfg),
 		PointAllocation: NewPointAllocationClient(cfg),
+		PointDeduction:  NewPointDeductionClient(cfg),
 	}, nil
 }
 
@@ -193,6 +199,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Event.Use(hooks...)
 	c.Member.Use(hooks...)
 	c.PointAllocation.Use(hooks...)
+	c.PointDeduction.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -201,6 +208,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Event.Intercept(interceptors...)
 	c.Member.Intercept(interceptors...)
 	c.PointAllocation.Intercept(interceptors...)
+	c.PointDeduction.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -212,6 +220,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Member.mutate(ctx, m)
 	case *PointAllocationMutation:
 		return c.PointAllocation.mutate(ctx, m)
+	case *PointDeductionMutation:
+		return c.PointDeduction.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -490,6 +500,22 @@ func (c *MemberClient) QueryPointAllocations(_m *Member) *PointAllocationQuery {
 	return query
 }
 
+// QueryPointDeductions queries the point_deductions edge of a Member.
+func (c *MemberClient) QueryPointDeductions(_m *Member) *PointDeductionQuery {
+	query := (&PointDeductionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(member.Table, member.FieldID, id),
+			sqlgraph.To(pointdeduction.Table, pointdeduction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, member.PointDeductionsTable, member.PointDeductionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *MemberClient) Hooks() []Hook {
 	hooks := c.hooks.Member
@@ -681,12 +707,161 @@ func (c *PointAllocationClient) mutate(ctx context.Context, m *PointAllocationMu
 	}
 }
 
+// PointDeductionClient is a client for the PointDeduction schema.
+type PointDeductionClient struct {
+	config
+}
+
+// NewPointDeductionClient returns a client for the PointDeduction from the given config.
+func NewPointDeductionClient(c config) *PointDeductionClient {
+	return &PointDeductionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pointdeduction.Hooks(f(g(h())))`.
+func (c *PointDeductionClient) Use(hooks ...Hook) {
+	c.hooks.PointDeduction = append(c.hooks.PointDeduction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pointdeduction.Intercept(f(g(h())))`.
+func (c *PointDeductionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PointDeduction = append(c.inters.PointDeduction, interceptors...)
+}
+
+// Create returns a builder for creating a PointDeduction entity.
+func (c *PointDeductionClient) Create() *PointDeductionCreate {
+	mutation := newPointDeductionMutation(c.config, OpCreate)
+	return &PointDeductionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PointDeduction entities.
+func (c *PointDeductionClient) CreateBulk(builders ...*PointDeductionCreate) *PointDeductionCreateBulk {
+	return &PointDeductionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PointDeductionClient) MapCreateBulk(slice any, setFunc func(*PointDeductionCreate, int)) *PointDeductionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PointDeductionCreateBulk{err: fmt.Errorf("calling to PointDeductionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PointDeductionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PointDeductionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PointDeduction.
+func (c *PointDeductionClient) Update() *PointDeductionUpdate {
+	mutation := newPointDeductionMutation(c.config, OpUpdate)
+	return &PointDeductionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PointDeductionClient) UpdateOne(_m *PointDeduction) *PointDeductionUpdateOne {
+	mutation := newPointDeductionMutation(c.config, OpUpdateOne, withPointDeduction(_m))
+	return &PointDeductionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PointDeductionClient) UpdateOneID(id int) *PointDeductionUpdateOne {
+	mutation := newPointDeductionMutation(c.config, OpUpdateOne, withPointDeductionID(id))
+	return &PointDeductionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PointDeduction.
+func (c *PointDeductionClient) Delete() *PointDeductionDelete {
+	mutation := newPointDeductionMutation(c.config, OpDelete)
+	return &PointDeductionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PointDeductionClient) DeleteOne(_m *PointDeduction) *PointDeductionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PointDeductionClient) DeleteOneID(id int) *PointDeductionDeleteOne {
+	builder := c.Delete().Where(pointdeduction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PointDeductionDeleteOne{builder}
+}
+
+// Query returns a query builder for PointDeduction.
+func (c *PointDeductionClient) Query() *PointDeductionQuery {
+	return &PointDeductionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePointDeduction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PointDeduction entity by its id.
+func (c *PointDeductionClient) Get(ctx context.Context, id int) (*PointDeduction, error) {
+	return c.Query().Where(pointdeduction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PointDeductionClient) GetX(ctx context.Context, id int) *PointDeduction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMember queries the member edge of a PointDeduction.
+func (c *PointDeductionClient) QueryMember(_m *PointDeduction) *MemberQuery {
+	query := (&MemberClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pointdeduction.Table, pointdeduction.FieldID, id),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, pointdeduction.MemberTable, pointdeduction.MemberColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PointDeductionClient) Hooks() []Hook {
+	return c.hooks.PointDeduction
+}
+
+// Interceptors returns the client interceptors.
+func (c *PointDeductionClient) Interceptors() []Interceptor {
+	return c.inters.PointDeduction
+}
+
+func (c *PointDeductionClient) mutate(ctx context.Context, m *PointDeductionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PointDeductionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PointDeductionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PointDeductionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PointDeductionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PointDeduction mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Event, Member, PointAllocation []ent.Hook
+		Event, Member, PointAllocation, PointDeduction []ent.Hook
 	}
 	inters struct {
-		Event, Member, PointAllocation []ent.Interceptor
+		Event, Member, PointAllocation, PointDeduction []ent.Interceptor
 	}
 )

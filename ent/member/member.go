@@ -33,6 +33,8 @@ const (
 	FieldLicenseClass = "license_class"
 	// EdgePointAllocations holds the string denoting the point_allocations edge name in mutations.
 	EdgePointAllocations = "point_allocations"
+	// EdgePointDeductions holds the string denoting the point_deductions edge name in mutations.
+	EdgePointDeductions = "point_deductions"
 	// Table holds the table name of the member in the database.
 	Table = "members"
 	// PointAllocationsTable is the table that holds the point_allocations relation/edge.
@@ -42,6 +44,13 @@ const (
 	PointAllocationsInverseTable = "point_allocations"
 	// PointAllocationsColumn is the table column denoting the point_allocations relation/edge.
 	PointAllocationsColumn = "point_allocation_member"
+	// PointDeductionsTable is the table that holds the point_deductions relation/edge.
+	PointDeductionsTable = "point_deductions"
+	// PointDeductionsInverseTable is the table name for the PointDeduction entity.
+	// It exists in this package in order to avoid circular dependency with the "pointdeduction" package.
+	PointDeductionsInverseTable = "point_deductions"
+	// PointDeductionsColumn is the table column denoting the point_deductions relation/edge.
+	PointDeductionsColumn = "point_deduction_member"
 )
 
 // Columns holds all SQL columns for member fields.
@@ -151,10 +160,31 @@ func ByPointAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newPointAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPointDeductionsCount orders the results by point_deductions count.
+func ByPointDeductionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPointDeductionsStep(), opts...)
+	}
+}
+
+// ByPointDeductions orders the results by point_deductions terms.
+func ByPointDeductions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPointDeductionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPointAllocationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PointAllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, true, PointAllocationsTable, PointAllocationsColumn),
+	)
+}
+func newPointDeductionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PointDeductionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, PointDeductionsTable, PointDeductionsColumn),
 	)
 }

@@ -44,9 +44,11 @@ type Member struct {
 type MemberEdges struct {
 	// Point allocations received by this member
 	PointAllocations []*PointAllocation `json:"point_allocations,omitempty"`
+	// Point deductions for redemptions by this member
+	PointDeductions []*PointDeduction `json:"point_deductions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // PointAllocationsOrErr returns the PointAllocations value or an error if the edge
@@ -56,6 +58,15 @@ func (e MemberEdges) PointAllocationsOrErr() ([]*PointAllocation, error) {
 		return e.PointAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "point_allocations"}
+}
+
+// PointDeductionsOrErr returns the PointDeductions value or an error if the edge
+// was not loaded in eager-loading.
+func (e MemberEdges) PointDeductionsOrErr() ([]*PointDeduction, error) {
+	if e.loadedTypes[1] {
+		return e.PointDeductions, nil
+	}
+	return nil, &NotLoadedError{edge: "point_deductions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -160,6 +171,11 @@ func (_m *Member) Value(name string) (ent.Value, error) {
 // QueryPointAllocations queries the "point_allocations" edge of the Member entity.
 func (_m *Member) QueryPointAllocations() *PointAllocationQuery {
 	return NewMemberClient(_m.config).QueryPointAllocations(_m)
+}
+
+// QueryPointDeductions queries the "point_deductions" edge of the Member entity.
+func (_m *Member) QueryPointDeductions() *PointDeductionQuery {
+	return NewMemberClient(_m.config).QueryPointDeductions(_m)
 }
 
 // Update returns a builder for updating this Member.

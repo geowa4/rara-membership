@@ -15,4 +15,3 @@ func init() {
 	eventCmd.AddCommand(createEventCmd)
 	eventCmd.AddCommand(updateEventCmd)
 }
-

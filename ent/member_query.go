@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/member"
 	"github.com/geowa4/rara-membership/ent/pointallocation"
+	"github.com/geowa4/rara-membership/ent/pointdeduction"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
@@ -25,6 +26,7 @@ type MemberQuery struct {
 	inters               []Interceptor
 	predicates           []predicate.Member
 	withPointAllocations *PointAllocationQuery
+	withPointDeductions  *PointDeductionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *MemberQuery) QueryPointAllocations() *PointAllocationQuery {
 			sqlgraph.From(member.Table, member.FieldID, selector),
 			sqlgraph.To(pointallocation.Table, pointallocation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, member.PointAllocationsTable, member.PointAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPointDeductions chains the current query on the "point_deductions" edge.
+func (_q *MemberQuery) QueryPointDeductions() *PointDeductionQuery {
+	query := (&PointDeductionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(member.Table, member.FieldID, selector),
+			sqlgraph.To(pointdeduction.Table, pointdeduction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, member.PointDeductionsTable, member.PointDeductionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (_q *MemberQuery) Clone() *MemberQuery {
 		inters:               append([]Interceptor{}, _q.inters...),
 		predicates:           append([]predicate.Member{}, _q.predicates...),
 		withPointAllocations: _q.withPointAllocations.Clone(),
+		withPointDeductions:  _q.withPointDeductions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +315,17 @@ func (_q *MemberQuery) WithPointAllocations(opts ...func(*PointAllocationQuery))
 		opt(query)
 	}
 	_q.withPointAllocations = query
+	return _q
+}
+
+// WithPointDeductions tells the query-builder to eager-load the nodes that are connected to
+// the "point_deductions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *MemberQuery) WithPointDeductions(opts ...func(*PointDeductionQuery)) *MemberQuery {
+	query := (&PointDeductionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPointDeductions = query
 	return _q
 }
 
@@ -371,8 +407,9 @@ func (_q *MemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Membe
 	var (
 		nodes       = []*Member{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withPointAllocations != nil,
+			_q.withPointDeductions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (_q *MemberQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Membe
 		if err := _q.loadPointAllocations(ctx, query, nodes,
 			func(n *Member) { n.Edges.PointAllocations = []*PointAllocation{} },
 			func(n *Member, e *PointAllocation) { n.Edges.PointAllocations = append(n.Edges.PointAllocations, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPointDeductions; query != nil {
+		if err := _q.loadPointDeductions(ctx, query, nodes,
+			func(n *Member) { n.Edges.PointDeductions = []*PointDeduction{} },
+			func(n *Member, e *PointDeduction) { n.Edges.PointDeductions = append(n.Edges.PointDeductions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -429,6 +473,37 @@ func (_q *MemberQuery) loadPointAllocations(ctx context.Context, query *PointAll
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "point_allocation_member" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *MemberQuery) loadPointDeductions(ctx context.Context, query *PointDeductionQuery, nodes []*Member, init func(*Member), assign func(*Member, *PointDeduction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Member)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PointDeduction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(member.PointDeductionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.point_deduction_member
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "point_deduction_member" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "point_deduction_member" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
