@@ -1,12 +1,18 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+	"slices"
+	"strings"
+
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"fmt"
+	gen "github.com/geowa4/rara-membership/ent"
+	"github.com/geowa4/rara-membership/ent/hook"
 	"github.com/geowa4/rara-membership/validation"
-	"slices"
 )
 
 // Member holds the schema definition for the Member entity.
@@ -46,5 +52,40 @@ func (Member) Indexes() []ent.Index {
 
 // Edges of the Member.
 func (Member) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("point_allocations", PointAllocation.Type).
+			Ref("member").
+			Comment("Point allocations received by this member"),
+	}
+}
+
+// Hooks of the Member.
+func (Member) Hooks() []ent.Hook {
+	return []ent.Hook{
+		hook.On(func(next ent.Mutator) ent.Mutator {
+			return hook.MemberFunc(func(ctx context.Context, m *gen.MemberMutation) (ent.Value, error) {
+				if callSign, ok := m.CallSign(); ok {
+					m.SetCallSign(strings.ToUpper(callSign))
+				}
+				return next.Mutate(ctx, m)
+			})
+		}, ent.OpCreate|ent.OpUpdate|ent.OpUpdateOne),
+	}
+	//return []ent.Hook{
+	//	func(next ent.Mutator) ent.Mutator {
+	//		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	//			// Only process Member mutations
+	//			if memberMutation, ok := m.(interface {
+	//				CallSign() (string, bool)
+	//				SetCallSign(string)
+	//			}); ok {
+	//				// Convert call sign to uppercase if it's being set
+	//				if callSign, exists := memberMutation.CallSign(); exists && callSign != "" {
+	//					memberMutation.SetCallSign(strings.ToUpper(callSign))
+	//				}
+	//			}
+	//			return next.Mutate(ctx, m)
+	//		})
+	//	},
+	//}
 }

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
+	"github.com/geowa4/rara-membership/ent/pointallocation"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -74,8 +75,9 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			event.Table:  event.ValidColumn,
-			member.Table: member.ValidColumn,
+			event.Table:           event.ValidColumn,
+			member.Table:          member.ValidColumn,
+			pointallocation.Table: pointallocation.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

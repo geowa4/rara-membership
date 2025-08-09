@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/event"
+	"github.com/geowa4/rara-membership/ent/pointallocation"
 )
 
 // EventCreate is the builder for creating a Event entity.
@@ -86,6 +87,21 @@ func (_c *EventCreate) SetNillableDefaultPointsAllocated(v *int8) *EventCreate {
 		_c.SetDefaultPointsAllocated(*v)
 	}
 	return _c
+}
+
+// AddPointAllocationIDs adds the "point_allocations" edge to the PointAllocation entity by IDs.
+func (_c *EventCreate) AddPointAllocationIDs(ids ...int) *EventCreate {
+	_c.mutation.AddPointAllocationIDs(ids...)
+	return _c
+}
+
+// AddPointAllocations adds the "point_allocations" edges to the PointAllocation entity.
+func (_c *EventCreate) AddPointAllocations(v ...*PointAllocation) *EventCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPointAllocationIDs(ids...)
 }
 
 // Mutation returns the EventMutation object of the builder.
@@ -235,6 +251,22 @@ func (_c *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DefaultPointsAllocated(); ok {
 		_spec.SetField(event.FieldDefaultPointsAllocated, field.TypeInt8, value)
 		_node.DefaultPointsAllocated = value
+	}
+	if nodes := _c.mutation.PointAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

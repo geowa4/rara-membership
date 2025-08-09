@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/member"
+	"github.com/geowa4/rara-membership/ent/pointallocation"
 )
 
 // MemberCreate is the builder for creating a Member entity.
@@ -129,6 +130,21 @@ func (_c *MemberCreate) SetNillableLicenseClass(v *string) *MemberCreate {
 	return _c
 }
 
+// AddPointAllocationIDs adds the "point_allocations" edge to the PointAllocation entity by IDs.
+func (_c *MemberCreate) AddPointAllocationIDs(ids ...int) *MemberCreate {
+	_c.mutation.AddPointAllocationIDs(ids...)
+	return _c
+}
+
+// AddPointAllocations adds the "point_allocations" edges to the PointAllocation entity.
+func (_c *MemberCreate) AddPointAllocations(v ...*PointAllocation) *MemberCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPointAllocationIDs(ids...)
+}
+
 // Mutation returns the MemberMutation object of the builder.
 func (_c *MemberCreate) Mutation() *MemberMutation {
 	return _c.mutation
@@ -136,7 +152,9 @@ func (_c *MemberCreate) Mutation() *MemberMutation {
 
 // Save creates the Member in the database.
 func (_c *MemberCreate) Save(ctx context.Context) (*Member, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -163,7 +181,7 @@ func (_c *MemberCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *MemberCreate) defaults() {
+func (_c *MemberCreate) defaults() error {
 	if _, ok := _c.mutation.IsActive(); !ok {
 		v := member.DefaultIsActive
 		_c.mutation.SetIsActive(v)
@@ -172,6 +190,7 @@ func (_c *MemberCreate) defaults() {
 		v := member.DefaultIsSilentKey
 		_c.mutation.SetIsSilentKey(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -259,6 +278,22 @@ func (_c *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LicenseClass(); ok {
 		_spec.SetField(member.FieldLicenseClass, field.TypeString, value)
 		_node.LicenseClass = value
+	}
+	if nodes := _c.mutation.PointAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   member.PointAllocationsTable,
+			Columns: []string{member.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

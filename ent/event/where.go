@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
@@ -372,6 +373,29 @@ func DefaultPointsAllocatedLT(v int8) predicate.Event {
 // DefaultPointsAllocatedLTE applies the LTE predicate on the "default_points_allocated" field.
 func DefaultPointsAllocatedLTE(v int8) predicate.Event {
 	return predicate.Event(sql.FieldLTE(FieldDefaultPointsAllocated, v))
+}
+
+// HasPointAllocations applies the HasEdge predicate on the "point_allocations" edge.
+func HasPointAllocations() predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, PointAllocationsTable, PointAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPointAllocationsWith applies the HasEdge predicate on the "point_allocations" edge with a given conditions (other predicates).
+func HasPointAllocationsWith(preds ...predicate.PointAllocation) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := newPointAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

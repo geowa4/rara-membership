@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,16 +13,18 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/event"
+	"github.com/geowa4/rara-membership/ent/pointallocation"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
 // EventQuery is the builder for querying Event entities.
 type EventQuery struct {
 	config
-	ctx        *QueryContext
-	order      []event.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Event
+	ctx                  *QueryContext
+	order                []event.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Event
+	withPointAllocations *PointAllocationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (_q *EventQuery) Unique(unique bool) *EventQuery {
 func (_q *EventQuery) Order(o ...event.OrderOption) *EventQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryPointAllocations chains the current query on the "point_allocations" edge.
+func (_q *EventQuery) QueryPointAllocations() *PointAllocationQuery {
+	query := (&PointAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, selector),
+			sqlgraph.To(pointallocation.Table, pointallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, event.PointAllocationsTable, event.PointAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Event entity from the query.
@@ -245,15 +270,27 @@ func (_q *EventQuery) Clone() *EventQuery {
 		return nil
 	}
 	return &EventQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]event.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Event{}, _q.predicates...),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]event.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.Event{}, _q.predicates...),
+		withPointAllocations: _q.withPointAllocations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithPointAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "point_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EventQuery) WithPointAllocations(opts ...func(*PointAllocationQuery)) *EventQuery {
+	query := (&PointAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPointAllocations = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +369,11 @@ func (_q *EventQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *EventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Event, error) {
 	var (
-		nodes = []*Event{}
-		_spec = _q.querySpec()
+		nodes       = []*Event{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withPointAllocations != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Event).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (_q *EventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Event,
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Event{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,46 @@ func (_q *EventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Event,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withPointAllocations; query != nil {
+		if err := _q.loadPointAllocations(ctx, query, nodes,
+			func(n *Event) { n.Edges.PointAllocations = []*PointAllocation{} },
+			func(n *Event, e *PointAllocation) { n.Edges.PointAllocations = append(n.Edges.PointAllocations, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *EventQuery) loadPointAllocations(ctx context.Context, query *PointAllocationQuery, nodes []*Event, init func(*Event), assign func(*Event, *PointAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Event)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PointAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(event.PointAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.point_allocation_event
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "point_allocation_event" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "point_allocation_event" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (_q *EventQuery) sqlCount(ctx context.Context) (int, error) {

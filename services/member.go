@@ -49,7 +49,7 @@ func GetActiveMemberByCallSign(callSign string) (*ent.Member, error) {
 	ctx := context.Background()
 	return database.Client.Member.Query().
 		Where(
-			member.Or(member.CallSignEQ(callSign), member.CallSignEQ(strings.ToUpper(callSign))),
+			member.Or(member.CallSignEQ(strings.ToUpper(callSign)), member.CallSignEQ(strings.ToLower(callSign))),
 			member.IsActiveEQ(true),
 		).
 		Only(ctx)

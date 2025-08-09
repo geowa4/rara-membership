@@ -3,7 +3,9 @@
 package member
 
 import (
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -29,8 +31,17 @@ const (
 	FieldIsSilentKey = "is_silent_key"
 	// FieldLicenseClass holds the string denoting the license_class field in the database.
 	FieldLicenseClass = "license_class"
+	// EdgePointAllocations holds the string denoting the point_allocations edge name in mutations.
+	EdgePointAllocations = "point_allocations"
 	// Table holds the table name of the member in the database.
 	Table = "members"
+	// PointAllocationsTable is the table that holds the point_allocations relation/edge.
+	PointAllocationsTable = "point_allocations"
+	// PointAllocationsInverseTable is the table name for the PointAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "pointallocation" package.
+	PointAllocationsInverseTable = "point_allocations"
+	// PointAllocationsColumn is the table column denoting the point_allocations relation/edge.
+	PointAllocationsColumn = "point_allocation_member"
 )
 
 // Columns holds all SQL columns for member fields.
@@ -57,7 +68,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/geowa4/rara-membership/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
@@ -119,4 +136,25 @@ func ByIsSilentKey(opts ...sql.OrderTermOption) OrderOption {
 // ByLicenseClass orders the results by the license_class field.
 func ByLicenseClass(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLicenseClass, opts...).ToFunc()
+}
+
+// ByPointAllocationsCount orders the results by point_allocations count.
+func ByPointAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPointAllocationsStep(), opts...)
+	}
+}
+
+// ByPointAllocations orders the results by point_allocations terms.
+func ByPointAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPointAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newPointAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PointAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, PointAllocationsTable, PointAllocationsColumn),
+	)
 }

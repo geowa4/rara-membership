@@ -50,12 +50,51 @@ var (
 			},
 		},
 	}
+	// PointAllocationsColumns holds the columns for the "point_allocations" table.
+	PointAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "points", Type: field.TypeInt},
+		{Name: "notes", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "point_allocation_event", Type: field.TypeInt},
+		{Name: "point_allocation_member", Type: field.TypeInt},
+	}
+	// PointAllocationsTable holds the schema information for the "point_allocations" table.
+	PointAllocationsTable = &schema.Table{
+		Name:       "point_allocations",
+		Columns:    PointAllocationsColumns,
+		PrimaryKey: []*schema.Column{PointAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "point_allocations_events_event",
+				Columns:    []*schema.Column{PointAllocationsColumns[4]},
+				RefColumns: []*schema.Column{EventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "point_allocations_members_member",
+				Columns:    []*schema.Column{PointAllocationsColumns[5]},
+				RefColumns: []*schema.Column{MembersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pointallocation_point_allocation_event_point_allocation_member",
+				Unique:  true,
+				Columns: []*schema.Column{PointAllocationsColumns[4], PointAllocationsColumns[5]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		EventsTable,
 		MembersTable,
+		PointAllocationsTable,
 	}
 )
 
 func init() {
+	PointAllocationsTable.ForeignKeys[0].RefTable = EventsTable
+	PointAllocationsTable.ForeignKeys[1].RefTable = MembersTable
 }

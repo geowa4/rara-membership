@@ -4,6 +4,7 @@ package member
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
@@ -620,6 +621,29 @@ func LicenseClassEqualFold(v string) predicate.Member {
 // LicenseClassContainsFold applies the ContainsFold predicate on the "license_class" field.
 func LicenseClassContainsFold(v string) predicate.Member {
 	return predicate.Member(sql.FieldContainsFold(FieldLicenseClass, v))
+}
+
+// HasPointAllocations applies the HasEdge predicate on the "point_allocations" edge.
+func HasPointAllocations() predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, PointAllocationsTable, PointAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPointAllocationsWith applies the HasEdge predicate on the "point_allocations" edge with a given conditions (other predicates).
+func HasPointAllocationsWith(preds ...predicate.PointAllocation) predicate.Member {
+	return predicate.Member(func(s *sql.Selector) {
+		step := newPointAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

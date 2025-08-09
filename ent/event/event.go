@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -25,8 +26,17 @@ const (
 	FieldLongitude = "longitude"
 	// FieldDefaultPointsAllocated holds the string denoting the default_points_allocated field in the database.
 	FieldDefaultPointsAllocated = "default_points_allocated"
+	// EdgePointAllocations holds the string denoting the point_allocations edge name in mutations.
+	EdgePointAllocations = "point_allocations"
 	// Table holds the table name of the event in the database.
 	Table = "events"
+	// PointAllocationsTable is the table that holds the point_allocations relation/edge.
+	PointAllocationsTable = "point_allocations"
+	// PointAllocationsInverseTable is the table name for the PointAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "pointallocation" package.
+	PointAllocationsInverseTable = "point_allocations"
+	// PointAllocationsColumn is the table column denoting the point_allocations relation/edge.
+	PointAllocationsColumn = "point_allocation_event"
 )
 
 // Columns holds all SQL columns for event fields.
@@ -107,4 +117,25 @@ func ByLongitude(opts ...sql.OrderTermOption) OrderOption {
 // ByDefaultPointsAllocated orders the results by the default_points_allocated field.
 func ByDefaultPointsAllocated(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefaultPointsAllocated, opts...).ToFunc()
+}
+
+// ByPointAllocationsCount orders the results by point_allocations count.
+func ByPointAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPointAllocationsStep(), opts...)
+	}
+}
+
+// ByPointAllocations orders the results by point_allocations terms.
+func ByPointAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPointAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newPointAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PointAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, PointAllocationsTable, PointAllocationsColumn),
+	)
 }

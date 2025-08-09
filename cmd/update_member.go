@@ -2,7 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/geowa4/rara-membership/services"
 	"github.com/geowa4/rara-membership/validation"
 	"github.com/spf13/cobra"
@@ -122,21 +126,75 @@ var updateMemberCmd = &cobra.Command{
 			return fmt.Errorf("failed to update member: %w", err)
 		}
 
-		fmt.Printf("\n✅ Member updated successfully!\n")
-		fmt.Printf("ID: %d\n", updatedMember.ID)
-		fmt.Printf("Name: %s\n", updatedMember.Name)
-		fmt.Printf("Email: %s\n", updatedMember.Email)
-		fmt.Printf("Phone: %s\n", updatedMember.Phone)
-		fmt.Printf("Address: %s\n", updatedMember.MailingAddress)
-		if updatedMember.CallSign != "" {
-			fmt.Printf("Call Sign: %s\n", updatedMember.CallSign)
+		// Define colors and styles
+		var (
+			purple    = lipgloss.Color("99")
+			gray      = lipgloss.Color("245")
+			lightGray = lipgloss.Color("241")
+			green     = lipgloss.Color("42")
+
+			headerStyle  = lipgloss.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
+			cellStyle    = lipgloss.NewStyle().Padding(0, 1)
+			oddRowStyle  = cellStyle.Foreground(gray)
+			evenRowStyle = cellStyle.Foreground(lightGray)
+		)
+
+		// Prepare member data for table
+		activeStatus := "✓"
+		if !updatedMember.IsActive {
+			activeStatus = "✗"
 		}
-		fmt.Printf("FRN: %s\n", updatedMember.Frn)
-		if updatedMember.LicenseClass != "" {
-			fmt.Printf("License Class: %s\n", updatedMember.LicenseClass)
+		silentKeyStatus := ""
+		if updatedMember.IsSilentKey {
+			silentKeyStatus = "sk"
 		}
-		fmt.Printf("Active: %t\n", updatedMember.IsActive)
-		fmt.Printf("Silent Key: %t\n", updatedMember.IsSilentKey)
+		memberCallSign := updatedMember.CallSign
+		if memberCallSign == "" {
+			memberCallSign = "-"
+		}
+		memberLicenseClass := updatedMember.LicenseClass
+		if memberLicenseClass == "" {
+			memberLicenseClass = "-"
+		}
+
+		row := []string{
+			strconv.Itoa(updatedMember.ID),
+			updatedMember.Name,
+			memberCallSign,
+			updatedMember.Email,
+			updatedMember.Phone,
+			updatedMember.Frn,
+			memberLicenseClass,
+			activeStatus,
+			silentKeyStatus,
+		}
+
+		// Create and style the table
+		t := table.New().
+			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NewStyle().Foreground(purple)).
+			StyleFunc(func(row, col int) lipgloss.Style {
+				switch {
+				case row == table.HeaderRow:
+					return headerStyle
+				case row%2 == 0:
+					return evenRowStyle
+				default:
+					return oddRowStyle
+				}
+			}).
+			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "FRN", "LICENSE", "ACTIVE", "SILENT KEY").
+			Rows([][]string{row}...)
+
+		// Print title and table
+		titleStyle := lipgloss.NewStyle().
+			Foreground(green).
+			Bold(true).
+			MarginBottom(1)
+
+		fmt.Println()
+		fmt.Println(titleStyle.Render("✅ Member Updated Successfully!"))
+		fmt.Println(t)
 
 		return nil
 	},

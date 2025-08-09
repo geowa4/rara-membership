@@ -16,6 +16,8 @@ type Tx struct {
 	Event *EventClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
+	// PointAllocation is the client for interacting with the PointAllocation builders.
+	PointAllocation *PointAllocationClient
 
 	// lazily loaded.
 	client     *Client
@@ -149,6 +151,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Event = NewEventClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
+	tx.PointAllocation = NewPointAllocationClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

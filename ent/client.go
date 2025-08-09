@@ -14,8 +14,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/geowa4/rara-membership/ent/event"
 	"github.com/geowa4/rara-membership/ent/member"
+	"github.com/geowa4/rara-membership/ent/pointallocation"
 )
 
 // Client is the client that holds all ent builders.
@@ -27,6 +29,8 @@ type Client struct {
 	Event *EventClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
+	// PointAllocation is the client for interacting with the PointAllocation builders.
+	PointAllocation *PointAllocationClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -40,6 +44,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Event = NewEventClient(c.config)
 	c.Member = NewMemberClient(c.config)
+	c.PointAllocation = NewPointAllocationClient(c.config)
 }
 
 type (
@@ -130,10 +135,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Event:  NewEventClient(cfg),
-		Member: NewMemberClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Event:           NewEventClient(cfg),
+		Member:          NewMemberClient(cfg),
+		PointAllocation: NewPointAllocationClient(cfg),
 	}, nil
 }
 
@@ -151,10 +157,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Event:  NewEventClient(cfg),
-		Member: NewMemberClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Event:           NewEventClient(cfg),
+		Member:          NewMemberClient(cfg),
+		PointAllocation: NewPointAllocationClient(cfg),
 	}, nil
 }
 
@@ -185,6 +192,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Event.Use(hooks...)
 	c.Member.Use(hooks...)
+	c.PointAllocation.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -192,6 +200,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Event.Intercept(interceptors...)
 	c.Member.Intercept(interceptors...)
+	c.PointAllocation.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -201,6 +210,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Event.mutate(ctx, m)
 	case *MemberMutation:
 		return c.Member.mutate(ctx, m)
+	case *PointAllocationMutation:
+		return c.PointAllocation.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -312,6 +323,22 @@ func (c *EventClient) GetX(ctx context.Context, id int) *Event {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryPointAllocations queries the point_allocations edge of a Event.
+func (c *EventClient) QueryPointAllocations(_m *Event) *PointAllocationQuery {
+	query := (&PointAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, id),
+			sqlgraph.To(pointallocation.Table, pointallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, event.PointAllocationsTable, event.PointAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -447,9 +474,26 @@ func (c *MemberClient) GetX(ctx context.Context, id int) *Member {
 	return obj
 }
 
+// QueryPointAllocations queries the point_allocations edge of a Member.
+func (c *MemberClient) QueryPointAllocations(_m *Member) *PointAllocationQuery {
+	query := (&PointAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(member.Table, member.FieldID, id),
+			sqlgraph.To(pointallocation.Table, pointallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, member.PointAllocationsTable, member.PointAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *MemberClient) Hooks() []Hook {
-	return c.hooks.Member
+	hooks := c.hooks.Member
+	return append(hooks[:len(hooks):len(hooks)], member.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -472,12 +516,177 @@ func (c *MemberClient) mutate(ctx context.Context, m *MemberMutation) (Value, er
 	}
 }
 
+// PointAllocationClient is a client for the PointAllocation schema.
+type PointAllocationClient struct {
+	config
+}
+
+// NewPointAllocationClient returns a client for the PointAllocation from the given config.
+func NewPointAllocationClient(c config) *PointAllocationClient {
+	return &PointAllocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pointallocation.Hooks(f(g(h())))`.
+func (c *PointAllocationClient) Use(hooks ...Hook) {
+	c.hooks.PointAllocation = append(c.hooks.PointAllocation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pointallocation.Intercept(f(g(h())))`.
+func (c *PointAllocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PointAllocation = append(c.inters.PointAllocation, interceptors...)
+}
+
+// Create returns a builder for creating a PointAllocation entity.
+func (c *PointAllocationClient) Create() *PointAllocationCreate {
+	mutation := newPointAllocationMutation(c.config, OpCreate)
+	return &PointAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PointAllocation entities.
+func (c *PointAllocationClient) CreateBulk(builders ...*PointAllocationCreate) *PointAllocationCreateBulk {
+	return &PointAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PointAllocationClient) MapCreateBulk(slice any, setFunc func(*PointAllocationCreate, int)) *PointAllocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PointAllocationCreateBulk{err: fmt.Errorf("calling to PointAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PointAllocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PointAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PointAllocation.
+func (c *PointAllocationClient) Update() *PointAllocationUpdate {
+	mutation := newPointAllocationMutation(c.config, OpUpdate)
+	return &PointAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PointAllocationClient) UpdateOne(_m *PointAllocation) *PointAllocationUpdateOne {
+	mutation := newPointAllocationMutation(c.config, OpUpdateOne, withPointAllocation(_m))
+	return &PointAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PointAllocationClient) UpdateOneID(id int) *PointAllocationUpdateOne {
+	mutation := newPointAllocationMutation(c.config, OpUpdateOne, withPointAllocationID(id))
+	return &PointAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PointAllocation.
+func (c *PointAllocationClient) Delete() *PointAllocationDelete {
+	mutation := newPointAllocationMutation(c.config, OpDelete)
+	return &PointAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PointAllocationClient) DeleteOne(_m *PointAllocation) *PointAllocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PointAllocationClient) DeleteOneID(id int) *PointAllocationDeleteOne {
+	builder := c.Delete().Where(pointallocation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PointAllocationDeleteOne{builder}
+}
+
+// Query returns a query builder for PointAllocation.
+func (c *PointAllocationClient) Query() *PointAllocationQuery {
+	return &PointAllocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePointAllocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PointAllocation entity by its id.
+func (c *PointAllocationClient) Get(ctx context.Context, id int) (*PointAllocation, error) {
+	return c.Query().Where(pointallocation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PointAllocationClient) GetX(ctx context.Context, id int) *PointAllocation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEvent queries the event edge of a PointAllocation.
+func (c *PointAllocationClient) QueryEvent(_m *PointAllocation) *EventQuery {
+	query := (&EventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pointallocation.Table, pointallocation.FieldID, id),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, pointallocation.EventTable, pointallocation.EventColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMember queries the member edge of a PointAllocation.
+func (c *PointAllocationClient) QueryMember(_m *PointAllocation) *MemberQuery {
+	query := (&MemberClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pointallocation.Table, pointallocation.FieldID, id),
+			sqlgraph.To(member.Table, member.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, pointallocation.MemberTable, pointallocation.MemberColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PointAllocationClient) Hooks() []Hook {
+	return c.hooks.PointAllocation
+}
+
+// Interceptors returns the client interceptors.
+func (c *PointAllocationClient) Interceptors() []Interceptor {
+	return c.inters.PointAllocation
+}
+
+func (c *PointAllocationClient) mutate(ctx context.Context, m *PointAllocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PointAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PointAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PointAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PointAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PointAllocation mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Event, Member []ent.Hook
+		Event, Member, PointAllocation []ent.Hook
 	}
 	inters struct {
-		Event, Member []ent.Interceptor
+		Event, Member, PointAllocation []ent.Interceptor
 	}
 )

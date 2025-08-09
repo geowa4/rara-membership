@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/geowa4/rara-membership/ent/event"
+	"github.com/geowa4/rara-membership/ent/pointallocation"
 	"github.com/geowa4/rara-membership/ent/predicate"
 )
 
@@ -133,9 +134,45 @@ func (_u *EventUpdate) AddDefaultPointsAllocated(v int8) *EventUpdate {
 	return _u
 }
 
+// AddPointAllocationIDs adds the "point_allocations" edge to the PointAllocation entity by IDs.
+func (_u *EventUpdate) AddPointAllocationIDs(ids ...int) *EventUpdate {
+	_u.mutation.AddPointAllocationIDs(ids...)
+	return _u
+}
+
+// AddPointAllocations adds the "point_allocations" edges to the PointAllocation entity.
+func (_u *EventUpdate) AddPointAllocations(v ...*PointAllocation) *EventUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPointAllocationIDs(ids...)
+}
+
 // Mutation returns the EventMutation object of the builder.
 func (_u *EventUpdate) Mutation() *EventMutation {
 	return _u.mutation
+}
+
+// ClearPointAllocations clears all "point_allocations" edges to the PointAllocation entity.
+func (_u *EventUpdate) ClearPointAllocations() *EventUpdate {
+	_u.mutation.ClearPointAllocations()
+	return _u
+}
+
+// RemovePointAllocationIDs removes the "point_allocations" edge to PointAllocation entities by IDs.
+func (_u *EventUpdate) RemovePointAllocationIDs(ids ...int) *EventUpdate {
+	_u.mutation.RemovePointAllocationIDs(ids...)
+	return _u
+}
+
+// RemovePointAllocations removes "point_allocations" edges to PointAllocation entities.
+func (_u *EventUpdate) RemovePointAllocations(v ...*PointAllocation) *EventUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePointAllocationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -233,6 +270,51 @@ func (_u *EventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedDefaultPointsAllocated(); ok {
 		_spec.AddField(event.FieldDefaultPointsAllocated, field.TypeInt8, value)
+	}
+	if _u.mutation.PointAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPointAllocationsIDs(); len(nodes) > 0 && !_u.mutation.PointAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PointAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -359,9 +441,45 @@ func (_u *EventUpdateOne) AddDefaultPointsAllocated(v int8) *EventUpdateOne {
 	return _u
 }
 
+// AddPointAllocationIDs adds the "point_allocations" edge to the PointAllocation entity by IDs.
+func (_u *EventUpdateOne) AddPointAllocationIDs(ids ...int) *EventUpdateOne {
+	_u.mutation.AddPointAllocationIDs(ids...)
+	return _u
+}
+
+// AddPointAllocations adds the "point_allocations" edges to the PointAllocation entity.
+func (_u *EventUpdateOne) AddPointAllocations(v ...*PointAllocation) *EventUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPointAllocationIDs(ids...)
+}
+
 // Mutation returns the EventMutation object of the builder.
 func (_u *EventUpdateOne) Mutation() *EventMutation {
 	return _u.mutation
+}
+
+// ClearPointAllocations clears all "point_allocations" edges to the PointAllocation entity.
+func (_u *EventUpdateOne) ClearPointAllocations() *EventUpdateOne {
+	_u.mutation.ClearPointAllocations()
+	return _u
+}
+
+// RemovePointAllocationIDs removes the "point_allocations" edge to PointAllocation entities by IDs.
+func (_u *EventUpdateOne) RemovePointAllocationIDs(ids ...int) *EventUpdateOne {
+	_u.mutation.RemovePointAllocationIDs(ids...)
+	return _u
+}
+
+// RemovePointAllocations removes "point_allocations" edges to PointAllocation entities.
+func (_u *EventUpdateOne) RemovePointAllocations(v ...*PointAllocation) *EventUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePointAllocationIDs(ids...)
 }
 
 // Where appends a list predicates to the EventUpdate builder.
@@ -489,6 +607,51 @@ func (_u *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error)
 	}
 	if value, ok := _u.mutation.AddedDefaultPointsAllocated(); ok {
 		_spec.AddField(event.FieldDefaultPointsAllocated, field.TypeInt8, value)
+	}
+	if _u.mutation.PointAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPointAllocationsIDs(); len(nodes) > 0 && !_u.mutation.PointAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PointAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.PointAllocationsTable,
+			Columns: []string{event.PointAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pointallocation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Event{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"time"
 )
@@ -34,5 +35,9 @@ func (Event) Fields() []ent.Field {
 
 // Edges of the Event.
 func (Event) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("point_allocations", PointAllocation.Type).
+			Ref("event").
+			Comment("Point allocations for this event"),
+	}
 }
