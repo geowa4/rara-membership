@@ -13,10 +13,6 @@ import (
 )
 
 func ListMembers(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	members, err := services.GetActiveMembers()
 	if err != nil {
@@ -40,10 +36,6 @@ func ListMembers(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateMember(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	var input struct {
 		Name           string  `json:"name"`
@@ -97,12 +89,7 @@ func CreateMember(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateMember(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut && r.Method != http.MethodPatch {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	callSign := r.URL.Query().Get("call_sign")
+	callSign := r.PathValue("call_sign")
 	if callSign == "" {
 		http.Error(w, "Call sign is required", http.StatusBadRequest)
 		return

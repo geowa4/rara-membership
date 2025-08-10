@@ -69,7 +69,7 @@ event_data='{
     "description": "Annual winter field day event for amateur radio operators",
     "default_points": 10
 }'
-test_endpoint "POST" "/events/create" "$event_data" "201" "POST /api/events/create"
+test_endpoint "POST" "/events" "$event_data" "201" "POST /api/events"
 
 # Test 3: Create another event
 echo -e "\n${YELLOW}Test 3: Create another event${NC}"
@@ -78,7 +78,7 @@ event2_data='{
     "description": "Summer hamfest and swap meet",
     "default_points": 5
 }'
-test_endpoint "POST" "/events/create" "$event2_data" "201" "POST /api/events/create"
+test_endpoint "POST" "/events" "$event2_data" "201" "POST /api/events"
 
 # Test 4: Create event with high points value
 echo -e "\n${YELLOW}Test 4: Create event with high points${NC}"
@@ -87,7 +87,7 @@ event3_data='{
     "description": "ARES emergency communications training",
     "default_points": 20
 }'
-test_endpoint "POST" "/events/create" "$event3_data" "201" "POST /api/events/create"
+test_endpoint "POST" "/events" "$event3_data" "201" "POST /api/events"
 
 # Test 5: Update event (using first created event ID)
 echo -e "\n${YELLOW}Test 5: Update event${NC}"
@@ -96,7 +96,7 @@ if [ ! -z "$EVENT_ID" ]; then
         "name": "Winter Field Day 2024 - Updated",
         "default_points": 15
     }'
-    test_endpoint "PUT" "/events/update?id=$EVENT_ID" "$update_data" "200" "PUT /api/events/update"
+    test_endpoint "PUT" "/events/$EVENT_ID" "$update_data" "200" "PUT /api/events/{id}"
 else
     echo -e "${YELLOW}Skipping - No event ID available${NC}"
 fi
@@ -107,14 +107,14 @@ if [ ! -z "$EVENT_ID" ]; then
     partial_update='{
         "description": "Updated description for winter field day"
     }'
-    test_endpoint "PATCH" "/events/update?id=$EVENT_ID" "$partial_update" "200" "PATCH /api/events/update"
+    test_endpoint "PUT" "/events/$EVENT_ID" "$partial_update" "200" "PUT /api/events/{id} (partial)"
 else
     echo -e "${YELLOW}Skipping - No event ID available${NC}"
 fi
 
 # Test 7: Update non-existent event
 echo -e "\n${YELLOW}Test 7: Update non-existent event${NC}"
-test_endpoint "PUT" "/events/update?id=99999" '{"name": "Test"}' "500" "PUT /api/events/update (not found)"
+test_endpoint "PUT" "/events/99999" '{"name": "Test"}' "500" "PUT /api/events/{id} (not found)"
 
 # Test 8: List events again to see updates
 echo -e "\n${YELLOW}Test 8: List events after updates${NC}"
@@ -123,7 +123,7 @@ test_endpoint "GET" "/events" "" "200" "GET /api/events (after updates)"
 # Test 9: Create event with invalid data
 echo -e "\n${YELLOW}Test 9: Create event with invalid data${NC}"
 invalid_data='{}'
-test_endpoint "POST" "/events/create" "$invalid_data" "500" "POST /api/events/create (invalid)"
+test_endpoint "POST" "/events" "$invalid_data" "500" "POST /api/events (invalid)"
 
 echo -e "\n================================"
 echo "Events API tests completed!"

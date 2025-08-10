@@ -65,18 +65,18 @@ member_data='{
     "frn": "0012345678",
     "license_class": "General"
 }'
-test_endpoint "POST" "/members/create" "$member_data" "201" "POST /api/members/create"
+test_endpoint "POST" "/members" "$member_data" "201" "POST /api/members"
 
 # Test 3: Create duplicate member (should fail)
 echo -e "\n${YELLOW}Test 3: Create duplicate member (should fail)${NC}"
-test_endpoint "POST" "/members/create" "$member_data" "409" "POST /api/members/create (duplicate)"
+test_endpoint "POST" "/members" "$member_data" "409" "POST /api/members (duplicate)"
 
 # Test 4: Create member with missing required fields (should fail)
 echo -e "\n${YELLOW}Test 4: Create member with missing required fields${NC}"
 invalid_data='{
     "name": "Jane Doe"
 }'
-test_endpoint "POST" "/members/create" "$invalid_data" "400" "POST /api/members/create (invalid)"
+test_endpoint "POST" "/members" "$invalid_data" "400" "POST /api/members (invalid)"
 
 # Test 5: Update member
 echo -e "\n${YELLOW}Test 5: Update member${NC}"
@@ -84,19 +84,19 @@ update_data='{
     "phone": "555-5678",
     "license_class": "Extra"
 }'
-test_endpoint "PUT" "/members/update?call_sign=W1TEST" "$update_data" "200" "PUT /api/members/update"
+test_endpoint "PUT" "/members/W1TEST" "$update_data" "200" "PUT /api/members/{call_sign}"
 
 # Test 6: Update non-existent member
 echo -e "\n${YELLOW}Test 6: Update non-existent member${NC}"
-test_endpoint "PUT" "/members/update?call_sign=NOTEXIST" "$update_data" "404" "PUT /api/members/update (not found)"
+test_endpoint "PUT" "/members/NOTEXIST" "$update_data" "404" "PUT /api/members/{call_sign} (not found)"
 
 # Test 7: Get member points history
 echo -e "\n${YELLOW}Test 7: Get member points history${NC}"
-test_endpoint "GET" "/members/points?call_sign=W1TEST" "" "200" "GET /api/members/points"
+test_endpoint "GET" "/members/W1TEST/points" "" "200" "GET /api/members/{call_sign}/points"
 
 # Test 8: Get points for non-existent member
 echo -e "\n${YELLOW}Test 8: Get points for non-existent member${NC}"
-test_endpoint "GET" "/members/points?call_sign=NOTEXIST" "" "404" "GET /api/members/points (not found)"
+test_endpoint "GET" "/members/NOTEXIST/points" "" "404" "GET /api/members/{call_sign}/points (not found)"
 
 # Test 9: Create another member for testing
 echo -e "\n${YELLOW}Test 9: Create another member${NC}"
@@ -107,7 +107,7 @@ member2_data='{
     "phone": "555-9999",
     "license_class": "Technician"
 }'
-test_endpoint "POST" "/members/create" "$member2_data" "201" "POST /api/members/create (member 2)"
+test_endpoint "POST" "/members" "$member2_data" "201" "POST /api/members (member 2)"
 
 echo -e "\n================================"
 echo "Members API tests completed!"

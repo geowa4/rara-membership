@@ -12,10 +12,6 @@ import (
 )
 
 func ListEvents(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	ctx := context.Background()
 	eventService := services.NewEventService(database.Client)
@@ -34,10 +30,6 @@ func ListEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateEvent(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	var input struct {
 		Name          string `json:"name"`
@@ -68,12 +60,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut && r.Method != http.MethodPatch {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	eventIDStr := r.URL.Query().Get("id")
+	eventIDStr := r.PathValue("id")
 	if eventIDStr == "" {
 		http.Error(w, "Event ID is required", http.StatusBadRequest)
 		return

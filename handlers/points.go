@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/geowa4/rara-membership/database"
@@ -29,12 +28,7 @@ type TransactionDetail struct {
 }
 
 func GetMemberPoints(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	callSign := r.URL.Query().Get("call_sign")
+	callSign := r.PathValue("call_sign")
 	if callSign == "" {
 		http.Error(w, "Call sign is required", http.StatusBadRequest)
 		return
@@ -111,16 +105,16 @@ func GetMemberPoints(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllocatePoints(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	callSign := r.PathValue("call_sign")
+	if callSign == "" {
+		http.Error(w, "Call sign is required", http.StatusBadRequest)
 		return
 	}
 
 	var input struct {
-		EventID  int    `json:"event_id"`
-		MemberID int    `json:"member_id"`
-		Points   *int   `json:"points"`
-		Notes    string `json:"notes"`
+		EventID int    `json:"event_id"`
+		Points  *int   `json:"points"`
+		Notes   string `json:"notes"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -128,8 +122,8 @@ func AllocatePoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.EventID <= 0 || input.MemberID <= 0 {
-		http.Error(w, "Event ID and Member ID must be positive numbers", http.StatusBadRequest)
+	if input.EventID <= 0 {
+		http.Error(w, "Event ID must be a positive number", http.StatusBadRequest)
 		return
 	}
 
@@ -139,16 +133,25 @@ func AllocatePoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
+	callSign = strings.ToUpper(strings.TrimSpace(callSign))
+
+	// Find the member by call sign
+	member, err := services.GetActiveMemberByCallSign(callSign)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Member with call sign %s not found or is not active", callSign), http.StatusNotFound)
+		return
+	}
+
 	pointService := services.NewPointAllocationService(database.Client)
 
-	allocation, err := pointService.AllocatePoints(ctx, input.EventID, input.MemberID, input.Points, input.Notes)
+	allocation, err := pointService.AllocatePoints(ctx, input.EventID, member.ID, input.Points, input.Notes)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error allocating points: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	// Get total points for the member
-	totalPoints, _ := pointService.GetTotalPointsForMember(ctx, input.MemberID)
+	totalPoints, _ := pointService.GetTotalPointsForMember(ctx, member.ID)
 
 	response := map[string]interface{}{
 		"allocation":   allocation,
@@ -164,24 +167,19 @@ func AllocatePoints(w http.ResponseWriter, r *http.Request) {
 }
 
 func RedeemPoints(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	callSign := r.PathValue("call_sign")
+	if callSign == "" {
+		http.Error(w, "Call sign is required", http.StatusBadRequest)
 		return
 	}
 
 	var input struct {
-		MemberID int    `json:"member_id"`
-		Points   int    `json:"points"`
-		Notes    string `json:"notes"`
+		Points int    `json:"points"`
+		Notes  string `json:"notes"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
-		return
-	}
-
-	if input.MemberID <= 0 {
-		http.Error(w, "Member ID must be a positive number", http.StatusBadRequest)
 		return
 	}
 
@@ -191,10 +189,19 @@ func RedeemPoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
+	callSign = strings.ToUpper(strings.TrimSpace(callSign))
+
+	// Find the member by call sign
+	member, err := services.GetActiveMemberByCallSign(callSign)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Member with call sign %s not found or is not active", callSign), http.StatusNotFound)
+		return
+	}
+
 	deductionService := services.NewPointDeductionService(database.Client)
 
 	// Check current balance before attempting redemption
-	balance, err := deductionService.GetPointBalanceForMember(ctx, input.MemberID)
+	balance, err := deductionService.GetPointBalanceForMember(ctx, member.ID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error checking member point balance: %v", err), http.StatusInternalServerError)
 		return
@@ -206,14 +213,14 @@ func RedeemPoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redeem points
-	deduction, err := deductionService.DeductPoints(ctx, input.MemberID, input.Points, input.Notes)
+	deduction, err := deductionService.DeductPoints(ctx, member.ID, input.Points, input.Notes)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error redeeming points: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	// Get new balance
-	newBalance, _ := deductionService.GetPointBalanceForMember(ctx, input.MemberID)
+	newBalance, _ := deductionService.GetPointBalanceForMember(ctx, member.ID)
 
 	response := map[string]interface{}{
 		"deduction":        deduction,
@@ -229,41 +236,3 @@ func RedeemPoints(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetMemberPointBalance(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	memberIDStr := r.URL.Query().Get("member_id")
-	if memberIDStr == "" {
-		http.Error(w, "Member ID is required", http.StatusBadRequest)
-		return
-	}
-
-	memberID, err := strconv.Atoi(memberIDStr)
-	if err != nil || memberID <= 0 {
-		http.Error(w, "Invalid member ID", http.StatusBadRequest)
-		return
-	}
-
-	ctx := context.Background()
-	deductionService := services.NewPointDeductionService(database.Client)
-
-	balance, err := deductionService.GetPointBalanceForMember(ctx, memberID)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error getting member point balance: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	response := map[string]interface{}{
-		"member_id": memberID,
-		"balance":   balance,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to encode response: %v", err), http.StatusInternalServerError)
-		return
-	}
-}

@@ -116,19 +116,18 @@ BASE_URL=http://localhost:3000 ./test/run_all_tests.sh
 
 ### Member Endpoints
 - ✅ GET `/api/members` - List active members
-- ✅ POST `/api/members/create` - Create new member
-- ✅ PUT `/api/members/update` - Update member
-- ✅ GET `/api/members/points` - Get member point history
+- ✅ POST `/api/members` - Create new member
+- ✅ PUT `/api/members/{call_sign}` - Update member by call sign
+- ✅ GET `/api/members/{call_sign}/points` - Get member point history and balance
 
 ### Event Endpoints
 - ✅ GET `/api/events` - List all events
-- ✅ POST `/api/events/create` - Create new event
-- ✅ PUT `/api/events/update` - Update event
+- ✅ POST `/api/events` - Create new event
+- ✅ PUT `/api/events/{id}` - Update event by ID
 
 ### Points Endpoints
-- ✅ POST `/api/points/allocate` - Allocate points to member
-- ✅ POST `/api/points/redeem` - Redeem member points
-- ✅ GET `/api/points/balance` - Get member balance
+- ✅ POST `/api/members/{call_sign}/points` - Allocate points to member
+- ✅ POST `/api/members/{call_sign}/redemptions` - Redeem member points
 
 ## Test Scenarios
 
