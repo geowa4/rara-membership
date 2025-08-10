@@ -9,6 +9,9 @@ import (
 )
 
 func Start() error {
+	// Static file serving
+	http.Handle("/", http.FileServer(http.Dir("web/")))
+
 	// Member endpoints
 	http.HandleFunc("GET /api/members", handlers.ListMembers)
 	http.HandleFunc("POST /api/members", handlers.CreateMember)
@@ -30,6 +33,7 @@ func Start() error {
 	}
 
 	fmt.Printf("Server starting on port %s...\n", port)
+	fmt.Printf("Web interface: http://localhost:%s\n", port)
 	fmt.Printf("\nAvailable API endpoints:\n")
 	fmt.Printf("  Members:\n")
 	fmt.Printf("    GET    /api/members                       - List all active members\n")

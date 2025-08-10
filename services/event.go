@@ -84,20 +84,48 @@ func (s *EventService) ListEvents(ctx context.Context) ([]*ent.Event, error) {
 	return s.client.Event.Query().Order(ent.Desc(event.FieldDate)).All(ctx)
 }
 
-// CreateEvent creates a new event with simplified parameters
-func (s *EventService) CreateEvent(ctx context.Context, name, description string, defaultPoints int) (*ent.Event, error) {
-	return s.client.Event.Create().
-		SetName(name).
-		SetDescription(description).
-		SetDate(time.Now()).
-		SetLatitude(0).
-		SetLongitude(0).
-		SetDefaultPointsAllocated(int8(defaultPoints)).
-		Save(ctx)
+// ListUpcomingEvents returns events happening after the current date
+func (s *EventService) ListUpcomingEvents(ctx context.Context) ([]*ent.Event, error) {
+	return s.client.Event.Query().
+		Where(event.DateGTE(time.Now())).
+		Order(ent.Asc(event.FieldDate)).
+		All(ctx)
 }
 
-// UpdateEvent updates an existing event with simplified parameters
-func (s *EventService) UpdateEvent(ctx context.Context, id int, name, description *string, defaultPoints *int) (*ent.Event, error) {
+// ListPastEvents returns events that have already happened
+func (s *EventService) ListPastEvents(ctx context.Context) ([]*ent.Event, error) {
+	return s.client.Event.Query().
+		Where(event.DateLT(time.Now())).
+		Order(ent.Desc(event.FieldDate)).
+		All(ctx)
+}
+
+// CreateEvent creates a new event with comprehensive parameters
+func (s *EventService) CreateEvent(ctx context.Context, name, description string, date *time.Time, latitude, longitude *float64, defaultPoints int) (*ent.Event, error) {
+	create := s.client.Event.Create().
+		SetName(name).
+		SetDescription(description).
+		SetDefaultPointsAllocated(int8(defaultPoints))
+	
+	if date != nil {
+		create = create.SetDate(*date)
+	} else {
+		create = create.SetDate(time.Now())
+	}
+	
+	if latitude != nil {
+		create = create.SetLatitude(*latitude)
+	}
+	
+	if longitude != nil {
+		create = create.SetLongitude(*longitude)
+	}
+	
+	return create.Save(ctx)
+}
+
+// UpdateEvent updates an existing event with comprehensive parameters
+func (s *EventService) UpdateEvent(ctx context.Context, id int, name, description *string, date *time.Time, latitude, longitude *float64, defaultPoints *int) (*ent.Event, error) {
 	update := s.client.Event.UpdateOneID(id)
 
 	if name != nil {
@@ -106,6 +134,18 @@ func (s *EventService) UpdateEvent(ctx context.Context, id int, name, descriptio
 
 	if description != nil {
 		update = update.SetDescription(*description)
+	}
+
+	if date != nil {
+		update = update.SetDate(*date)
+	}
+
+	if latitude != nil {
+		update = update.SetLatitude(*latitude)
+	}
+
+	if longitude != nil {
+		update = update.SetLongitude(*longitude)
 	}
 
 	if defaultPoints != nil {

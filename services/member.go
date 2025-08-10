@@ -29,6 +29,7 @@ type CreateMemberInput struct {
 
 type UpdateMemberInput struct {
 	Name           *string
+	CallSign       *string
 	Email          *string
 	Phone          *string
 	MailingAddress *string
@@ -170,6 +171,10 @@ func (s *MemberService) UpdateMemberByCallSign(ctx context.Context, callSign str
 
 	if input.Name != nil {
 		update = update.SetName(*input.Name)
+	}
+
+	if input.CallSign != nil {
+		update = update.SetCallSign(strings.ToUpper(*input.CallSign))
 	}
 
 	if input.Email != nil {

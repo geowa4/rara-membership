@@ -97,6 +97,7 @@ func UpdateMember(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
 		Name           *string `json:"name"`
+		CallSign       *string `json:"call_sign"`
 		Email          *string `json:"email"`
 		Phone          *string `json:"phone"`
 		MailingAddress *string `json:"mailing_address"`
@@ -116,6 +117,7 @@ func UpdateMember(w http.ResponseWriter, r *http.Request) {
 
 	updateInput := services.UpdateMemberInput{
 		Name:           input.Name,
+		CallSign:       input.CallSign,
 		Email:          input.Email,
 		Phone:          input.Phone,
 		MailingAddress: input.MailingAddress,
