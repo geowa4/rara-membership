@@ -28,3 +28,7 @@ go.work
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Development documentation
+CRUSH.md
+CLAUDE.md
