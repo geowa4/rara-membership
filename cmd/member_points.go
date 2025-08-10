@@ -24,6 +24,8 @@ type PointTransaction struct {
 	Notes       string    // additional notes
 }
 
+var pointsOnly bool
+
 // memberPointsCmd represents the member points command
 var memberPointsCmd = &cobra.Command{
 	Use:   "points [call_sign]",
@@ -37,7 +39,10 @@ Examples:
   rara-membership member points W1ABC
   
   # Show complete point history for member with call sign KD2DEF
-  rara-membership member points KD2DEF`,
+  rara-membership member points KD2DEF
+  
+  # Show only the current balance as a plain number
+  rara-membership member points W1ABC --points-only`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
@@ -93,6 +98,18 @@ Examples:
 				Description: "Points Redeemed",
 				Notes:       deduction.Notes,
 			})
+		}
+
+		// Calculate current balance
+		currentBalance := 0
+		for _, transaction := range transactions {
+			currentBalance += transaction.Points
+		}
+
+		// If points-only output is requested, just print the balance and return
+		if pointsOnly {
+			fmt.Println(currentBalance)
+			return nil
 		}
 
 		if len(transactions) == 0 {
@@ -211,4 +228,5 @@ Examples:
 
 func init() {
 	memberCmd.AddCommand(memberPointsCmd)
+	memberPointsCmd.Flags().BoolVar(&pointsOnly, "points-only", false, "Output only the current balance as a plain number")
 }
