@@ -149,7 +149,7 @@ When running the HTTP server (`./rara-membership serve`):
 
 ## Database
 
-The application uses SQLite with the database file `membership.db` created automatically in the current directory. The database includes:
+The application uses SQLite with the database file `membership.db` created automatically in the current directory (or path specified by `RARA_DB_PATH` environment variable). The database includes:
 
 - Automatic migrations on startup
 - Indexes on frequently queried fields (call_sign, is_active)
@@ -206,7 +206,14 @@ go build -o rara-membership .
 
 ## Configuration
 
-The application uses sensible defaults and requires no configuration files. All data is stored in the local SQLite database file.
+The application uses sensible defaults and requires no configuration files. Configuration is handled through environment variables:
+
+### Environment Variables
+
+- **`RARA_DB_PATH`** (optional): Path to the SQLite database file
+  - Default: `membership.db` (created in current working directory)
+  - Example: `export RARA_DB_PATH="/path/to/custom/database.db"`
+  - Used by tests to isolate database files in temporary directories
 
 ## License Classes
 

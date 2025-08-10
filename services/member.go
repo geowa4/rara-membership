@@ -9,6 +9,35 @@ import (
 	"github.com/geowa4/rara-membership/ent/member"
 )
 
+type MemberService struct {
+	client *ent.Client
+}
+
+func NewMemberService(client *ent.Client) *MemberService {
+	return &MemberService{client: client}
+}
+
+type CreateMemberInput struct {
+	Name           string
+	CallSign       string
+	Email          string
+	Phone          *string
+	MailingAddress *string
+	FRN            *string
+	LicenseClass   *string
+}
+
+type UpdateMemberInput struct {
+	Name           *string
+	Email          *string
+	Phone          *string
+	MailingAddress *string
+	FRN            *string
+	LicenseClass   *string
+	IsActive       *bool
+	IsSilentKey    *bool
+}
+
 func GetActiveMembers() ([]*ent.Member, error) {
 	ctx := context.Background()
 	return database.Client.Member.Query().Where(member.IsActiveEQ(true)).All(ctx)
@@ -91,6 +120,100 @@ func UpdateMember(id int, name, email, phone, mailingAddress, callSign, frn stri
 		update = update.SetLicenseClass(licenseClass)
 	} else {
 		update = update.ClearLicenseClass()
+	}
+
+	return update.Save(ctx)
+}
+
+func (s *MemberService) CreateMember(ctx context.Context, input CreateMemberInput) (*ent.Member, error) {
+	create := s.client.Member.Create().
+		SetName(input.Name).
+		SetCallSign(strings.ToUpper(input.CallSign)).
+		SetEmail(input.Email).
+		SetIsActive(true).
+		SetIsSilentKey(false)
+
+	if input.Phone != nil && *input.Phone != "" {
+		create = create.SetPhone(*input.Phone)
+	}
+
+	if input.MailingAddress != nil && *input.MailingAddress != "" {
+		create = create.SetMailingAddress(*input.MailingAddress)
+	}
+
+	if input.FRN != nil && *input.FRN != "" {
+		create = create.SetFrn(*input.FRN)
+	}
+
+	if input.LicenseClass != nil && *input.LicenseClass != "" {
+		create = create.SetLicenseClass(*input.LicenseClass)
+	}
+
+	return create.Save(ctx)
+}
+
+func (s *MemberService) UpdateMemberByCallSign(ctx context.Context, callSign string, input UpdateMemberInput) (*ent.Member, error) {
+	// First find the member
+	mbr, err := s.client.Member.Query().
+		Where(
+			member.Or(
+				member.CallSignEQ(strings.ToUpper(callSign)),
+				member.CallSignEQ(strings.ToLower(callSign)),
+			),
+		).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	update := s.client.Member.UpdateOneID(mbr.ID)
+
+	if input.Name != nil {
+		update = update.SetName(*input.Name)
+	}
+
+	if input.Email != nil {
+		update = update.SetEmail(*input.Email)
+	}
+
+	if input.Phone != nil {
+		if *input.Phone != "" {
+			update = update.SetPhone(*input.Phone)
+		} else {
+			update = update.ClearPhone()
+		}
+	}
+
+	if input.MailingAddress != nil {
+		if *input.MailingAddress != "" {
+			update = update.SetMailingAddress(*input.MailingAddress)
+		} else {
+			update = update.ClearMailingAddress()
+		}
+	}
+
+	if input.FRN != nil {
+		if *input.FRN != "" {
+			update = update.SetFrn(*input.FRN)
+		} else {
+			update = update.ClearFrn()
+		}
+	}
+
+	if input.LicenseClass != nil {
+		if *input.LicenseClass != "" {
+			update = update.SetLicenseClass(*input.LicenseClass)
+		} else {
+			update = update.ClearLicenseClass()
+		}
+	}
+
+	if input.IsActive != nil {
+		update = update.SetIsActive(*input.IsActive)
+	}
+
+	if input.IsSilentKey != nil {
+		update = update.SetIsSilentKey(*input.IsSilentKey)
 	}
 
 	return update.Save(ctx)

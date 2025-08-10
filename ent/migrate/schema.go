@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -47,6 +48,14 @@ var (
 				Name:    "member_call_sign_is_active",
 				Unique:  false,
 				Columns: []*schema.Column{MembersColumns[5], MembersColumns[7]},
+			},
+			{
+				Name:    "member_call_sign",
+				Unique:  true,
+				Columns: []*schema.Column{MembersColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_active = true",
+				},
 			},
 		},
 	}

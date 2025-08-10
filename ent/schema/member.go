@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -47,6 +48,9 @@ func (Member) Fields() []ent.Field {
 func (Member) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("call_sign", "is_active"),
+		index.Fields("call_sign").
+			Unique().
+			Annotations(entsql.IndexWhere("is_active = true")),
 	}
 }
 
