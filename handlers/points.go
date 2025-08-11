@@ -67,6 +67,7 @@ func GetMemberPoints(w http.ResponseWriter, r *http.Request) {
 	totalEarned := 0
 	totalRedeemed := 0
 
+	// Allocations are already sorted by CreatedAt DESC from the service
 	for _, allocation := range allocations {
 		totalEarned += allocation.Points
 		transactions = append(transactions, TransactionDetail{
@@ -78,6 +79,7 @@ func GetMemberPoints(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// Deductions are already sorted by CreatedAt DESC from the service
 	for _, deduction := range deductions {
 		totalRedeemed += deduction.Points
 		// Use notes as description if available, otherwise use generic text
@@ -92,6 +94,15 @@ func GetMemberPoints(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Notes:       deduction.Notes,
 		})
+	}
+
+	// Sort all transactions by date in descending order (most recent first)
+	for i := 0; i < len(transactions)-1; i++ {
+		for j := i + 1; j < len(transactions); j++ {
+			if transactions[i].Date < transactions[j].Date {
+				transactions[i], transactions[j] = transactions[j], transactions[i]
+			}
+		}
 	}
 
 	response := PointHistoryResponse{
@@ -240,4 +251,3 @@ func RedeemPoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-

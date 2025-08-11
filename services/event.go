@@ -91,7 +91,7 @@ func (s *EventService) ListEvents(ctx context.Context) ([]*ent.Event, error) {
 // ListEventsPaginated returns events with pagination support
 func (s *EventService) ListEventsPaginated(ctx context.Context, perPage int, beforeID *int) ([]*ent.Event, error) {
 	query := s.client.Event.Query().Order(ent.Desc(event.FieldDate))
-	
+
 	// Apply beforeID filter for cursor-based pagination
 	if beforeID != nil {
 		// Get the date of the beforeID event for proper cursor pagination
@@ -110,12 +110,12 @@ func (s *EventService) ListEventsPaginated(ctx context.Context, perPage int, bef
 			),
 		)
 	}
-	
+
 	// Apply pagination limit, with sensible defaults
 	if perPage <= 0 || perPage > 1000 {
 		perPage = 50 // Default to 50, max 1000
 	}
-	
+
 	return query.Limit(perPage).All(ctx)
 }
 
@@ -141,25 +141,25 @@ func (s *EventService) CreateEvent(ctx context.Context, name, description string
 		SetName(name).
 		SetDescription(description).
 		SetDefaultPointsAllocated(int8(defaultPoints))
-	
+
 	if date != nil {
 		create = create.SetDate(*date)
 	} else {
 		create = create.SetDate(time.Now())
 	}
-	
+
 	if timezone != nil && *timezone != "" {
 		create = create.SetTimezone(*timezone)
 	}
-	
+
 	if latitude != nil {
 		create = create.SetLatitude(*latitude)
 	}
-	
+
 	if longitude != nil {
 		create = create.SetLongitude(*longitude)
 	}
-	
+
 	return create.Save(ctx)
 }
 

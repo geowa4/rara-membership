@@ -104,6 +104,14 @@ var (
 				Unique:  true,
 				Columns: []*schema.Column{PointAllocationsColumns[4], PointAllocationsColumns[5]},
 			},
+			{
+				Name:    "pointallocation_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PointAllocationsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Desc: true,
+				},
+			},
 		},
 	}
 	// PointDeductionsColumns holds the columns for the "point_deductions" table.
@@ -125,6 +133,16 @@ var (
 				Columns:    []*schema.Column{PointDeductionsColumns[4]},
 				RefColumns: []*schema.Column{MembersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pointdeduction_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PointDeductionsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Desc: true,
+				},
 			},
 		},
 	}

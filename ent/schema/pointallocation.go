@@ -1,11 +1,13 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"time"
 )
 
 // PointAllocation holds the schema definition for the PointAllocation entity.
@@ -50,5 +52,6 @@ func (PointAllocation) Indexes() []ent.Index {
 		// Ensure a member can only receive points once per event
 		index.Edges("event", "member").
 			Unique(),
+		index.Fields("created_at").Annotations(entsql.Desc()),
 	}
 }

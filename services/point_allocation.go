@@ -110,6 +110,7 @@ func (s *PointAllocationService) GetAllocationsByEvent(ctx context.Context, even
 func (s *PointAllocationService) GetAllocationsByMember(ctx context.Context, memberID int) ([]*ent.PointAllocation, error) {
 	allocations, err := s.client.PointAllocation.Query().
 		Where(pointallocation.HasMemberWith(member.ID(memberID))).
+		Order(ent.Desc(pointallocation.FieldCreatedAt)).
 		WithEvent().
 		WithMember().
 		All(ctx)
@@ -135,7 +136,7 @@ func (s *PointAllocationService) GetTotalPointsForMember(ctx context.Context, me
 	return total, nil
 }
 
-// GetVolunteerHistoryForMember returns all volunteer history for a member, sorted by event date (newest first)
+// GetVolunteerHistoryForMember returns all volunteer history for a member, sorted by created date (newest first)
 func (s *PointAllocationService) GetVolunteerHistoryForMember(ctx context.Context, memberID int) ([]*ent.PointAllocation, error) {
 	// First verify the member exists
 	exists, err := s.client.Member.Query().
@@ -150,21 +151,12 @@ func (s *PointAllocationService) GetVolunteerHistoryForMember(ctx context.Contex
 
 	allocations, err := s.client.PointAllocation.Query().
 		Where(pointallocation.HasMemberWith(member.ID(memberID))).
+		Order(ent.Desc(pointallocation.FieldCreatedAt)).
 		WithEvent().
 		WithMember().
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volunteer history for member: %w", err)
-	}
-
-	// Sort by event date (newest first)
-	// Since we can't easily sort by event.date in the query, we'll sort in memory
-	for i := 0; i < len(allocations)-1; i++ {
-		for j := i + 1; j < len(allocations); j++ {
-			if allocations[i].Edges.Event.Date.Before(allocations[j].Edges.Event.Date) {
-				allocations[i], allocations[j] = allocations[j], allocations[i]
-			}
-		}
 	}
 
 	return allocations, nil

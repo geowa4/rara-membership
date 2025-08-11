@@ -77,6 +77,7 @@ func (s *PointDeductionService) DeductPoints(ctx context.Context, memberID int, 
 func (s *PointDeductionService) GetDeductionsByMember(ctx context.Context, memberID int) ([]*ent.PointDeduction, error) {
 	deductions, err := s.client.PointDeduction.Query().
 		Where(pointdeduction.HasMemberWith(member.ID(memberID))).
+		Order(ent.Desc(pointdeduction.FieldCreatedAt)).
 		WithMember().
 		All(ctx)
 	if err != nil {
@@ -147,19 +148,11 @@ func (s *PointDeductionService) GetRedemptionHistoryForMember(ctx context.Contex
 
 	deductions, err := s.client.PointDeduction.Query().
 		Where(pointdeduction.HasMemberWith(member.ID(memberID))).
+		Order(ent.Desc(pointdeduction.FieldCreatedAt)).
 		WithMember().
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get redemption history for member: %w", err)
-	}
-
-	// Sort by created date (newest first)
-	for i := 0; i < len(deductions)-1; i++ {
-		for j := i + 1; j < len(deductions); j++ {
-			if deductions[i].CreatedAt.Before(deductions[j].CreatedAt) {
-				deductions[i], deductions[j] = deductions[j], deductions[i]
-			}
-		}
 	}
 
 	return deductions, nil

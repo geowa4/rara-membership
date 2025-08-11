@@ -21,7 +21,7 @@ func ListEvents(w http.ResponseWriter, r *http.Request) {
 	filter := r.URL.Query().Get("filter")
 	perPageStr := r.URL.Query().Get("perPage")
 	beforeIDStr := r.URL.Query().Get("beforeID")
-	
+
 	// Parse pagination parameters
 	perPage := 50 // Default
 	if perPageStr != "" {
@@ -29,17 +29,17 @@ func ListEvents(w http.ResponseWriter, r *http.Request) {
 			perPage = parsed
 		}
 	}
-	
+
 	var beforeID *int
 	if beforeIDStr != "" {
 		if parsed, err := strconv.Atoi(beforeIDStr); err == nil {
 			beforeID = &parsed
 		}
 	}
-	
+
 	var events []*ent.Event
 	var err error
-	
+
 	switch filter {
 	case "past":
 		events, err = eventService.ListPastEvents(ctx)
@@ -53,7 +53,7 @@ func ListEvents(w http.ResponseWriter, r *http.Request) {
 			events, err = eventService.ListEvents(ctx)
 		}
 	}
-	
+
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to query events: %v", err), http.StatusInternalServerError)
 		return
