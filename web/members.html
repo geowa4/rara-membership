@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members - RARA Membership System</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation will be loaded here -->
+        <div id="nav-placeholder"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="section">
+                <header class="section-header">
+                    <h2>📻 Active Members</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="window.memberModalInstance.showCreateModal()">+ Add Member</button>
+                    </div>
+                </header>
+                
+                <div class="content-card">
+                    <div x-data="membersList()" x-init="loadMembers()">
+                        <div x-show="loading" class="loading">
+                            📡 Loading members...
+                        </div>
+                        
+                        <div x-show="!loading && members.length > 0">
+                            <!-- Search and Filter Controls -->
+                            <div class="filter-controls">
+                                <input 
+                                    type="search" 
+                                    placeholder="Search by call sign, name, or email..." 
+                                    class="search-input"
+                                    x-model="searchTerm"
+                                    @input="filterMembers()">
+                                <select x-model="licenseFilter" @change="filterMembers()" class="filter-select">
+                                    <option value="">All License Classes</option>
+                                    <option value="Technician">Technician</option>
+                                    <option value="General">General</option>
+                                    <option value="Extra">Extra</option>
+                                    <option value="Advanced">Advanced</option>
+                                    <option value="Novice">Novice</option>
+                                </select>
+                            </div>
+                            
+                            <div class="members-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Call Sign</th>
+                                            <th>Name</th>
+                                            <th>License Class</th>
+                                            <th>Email</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="member in filteredMembers" :key="member.call_sign">
+                                            <tr>
+                                                <td><strong x-text="member.call_sign"></strong></td>
+                                                <td x-text="member.name"></td>
+                                                <td x-text="member.license_class || 'Unknown'"></td>
+                                                <td x-text="member.email"></td>
+                                                <td>
+                                                    <button 
+                                                        class="btn btn-small"
+                                                        @click="window.memberModalInstance.showEditModal(member)">Edit</button>
+                                                    <button 
+                                                        class="btn btn-small btn-secondary"
+                                                        @click="window.globalViewPoints(member.call_sign)">Points</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                                
+                                <div x-show="filteredMembers.length === 0 && !loading" class="no-results">
+                                    <p>No members match your search criteria.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div x-show="!loading && members.length === 0" class="empty-state">
+                            <div class="empty-icon">📻</div>
+                            <h3>No Active Members</h3>
+                            <p>Start by adding your first club member.</p>
+                            <button class="btn btn-primary" @click="window.memberModalInstance.showCreateModal()">+ Add First Member</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Member Modal -->
+    <div x-data="memberModal()" x-init="init()" class="modal-overlay" x-show="isOpen" @click.self="close()">
+        <div class="modal-content" @click.away="close()">
+            <div class="modal-header">
+                <h3 x-text="isEditing ? 'Edit Member' : 'Add New Member'"></h3>
+                <button @click="close()" class="modal-close">×</button>
+            </div>
+            
+            <form @submit.prevent="submitForm()" class="modal-body">
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" x-model="formData.name" required class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="callSign">Call Sign *</label>
+                    <input type="text" id="callSign" x-model="formData.call_sign" required class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" x-model="formData.email" required class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" x-model="formData.phone" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mailingAddress">Mailing Address</label>
+                    <textarea id="mailingAddress" x-model="formData.mailing_address" class="form-textarea" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="frn">FRN</label>
+                        <input type="text" id="frn" x-model="formData.frn" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="licenseClass">License Class</label>
+                        <select id="licenseClass" x-model="formData.license_class" class="form-select">
+                            <option value="">Select License Class</option>
+                            <option value="Technician">Technician</option>
+                            <option value="General">General</option>
+                            <option value="Extra">Extra</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Novice">Novice</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <template x-if="isEditing">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" x-model="formData.is_active"> Active Member
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" x-model="formData.is_silent_key"> Silent Key
+                            </label>
+                        </div>
+                    </div>
+                </template>
+                
+                <div class="form-actions">
+                    <button type="button" @click="close()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" :disabled="submitting" class="btn btn-primary">
+                        <span x-show="!submitting" x-text="isEditing ? 'Update Member' : 'Create Member'"></span>
+                        <span x-show="submitting">Saving...</span>
+                    </button>
+                </div>
+                
+                <div x-show="error" class="error-message" x-text="error"></div>
+                <div x-show="success" class="success-message" x-text="success"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        // Load navigation
+        fetch('components/nav.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('nav-placeholder').innerHTML = data;
+            });
+
+        // Members List Component
+        function membersList() {
+            return {
+                members: [],
+                filteredMembers: [],
+                loading: true,
+                searchTerm: '',
+                licenseFilter: '',
+                
+                async loadMembers() {
+                    try {
+                        const response = await fetch('/api/members');
+                        this.members = await response.json();
+                        this.filteredMembers = [...this.members];
+                    } catch (error) {
+                        console.error('Failed to load members:', error);
+                        this.members = [];
+                        this.filteredMembers = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                filterMembers() {
+                    let filtered = [...this.members];
+                    
+                    // Filter by search term
+                    if (this.searchTerm.trim()) {
+                        const term = this.searchTerm.toLowerCase().trim();
+                        filtered = filtered.filter(member => 
+                            member.call_sign.toLowerCase().includes(term) ||
+                            member.name.toLowerCase().includes(term) ||
+                            member.email.toLowerCase().includes(term)
+                        );
+                    }
+                    
+                    // Filter by license class
+                    if (this.licenseFilter) {
+                        filtered = filtered.filter(member => 
+                            member.license_class === this.licenseFilter
+                        );
+                    }
+                    
+                    this.filteredMembers = filtered;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

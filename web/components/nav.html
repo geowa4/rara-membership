@@ -1,0 +1,33 @@
+<!-- Sidebar Navigation Component -->
+<nav class="sidebar">
+    <div class="logo">
+        <div class="antenna-icon">📡</div>
+        <h1>RARA</h1>
+        <p>Membership System</p>
+    </div>
+    
+    <div class="nav-buttons">
+        <a href="index.html" class="nav-button" id="nav-members">Members</a>
+        <a href="events.html" class="nav-button" id="nav-events">Events</a>
+        <a href="points.html" class="nav-button" id="nav-points">Points</a>
+        <a href="reports.html" class="nav-button" id="nav-reports">Reports</a>
+    </div>
+</nav>
+
+<script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const pageMap = {
+            'index.html': 'nav-members',
+            'members.html': 'nav-members',
+            'events.html': 'nav-events',
+            'points.html': 'nav-points',
+            'reports.html': 'nav-reports'
+        };
+        const navId = pageMap[currentPage];
+        if (navId) {
+            document.getElementById(navId).classList.add('active');
+        }
+    });
+</script>

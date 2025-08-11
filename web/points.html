@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points - RARA Membership System</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation will be loaded here -->
+        <div id="nav-placeholder"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="section">
+                <div x-data="pointsManagement()" x-init="init(); loadMembers()">
+                    <header class="section-header">
+                        <h2>🎯 Points Management</h2>
+                        <div class="header-actions">
+                            <select class="filter-select" x-model="selectedMember" @change="loadMemberPoints()" x-show="membersLoaded">
+                                <option value="">Select Member...</option>
+                                <template x-for="member in members" :key="member.call_sign">
+                                    <option :value="member.call_sign" x-text="`${member.call_sign} - ${member.name}`"></option>
+                                </template>
+                            </select>
+                            <span x-show="!membersLoaded" class="loading">Loading members...</span>
+                        </div>
+                    </header>
+                    
+                    <div class="content-card">
+                        <div x-show="selectedMember && !loading" class="points-dashboard">
+                            <div class="points-header">
+                                <h3 x-text="`Points for ${selectedMember}`"></h3>
+                                <div class="points-balance">
+                                    <span class="balance-label">Current Balance:</span>
+                                    <span class="balance-amount" x-text="`${memberBalance} points`"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="points-actions">
+                                <button class="btn btn-primary" @click="showAllocationModal()">
+                                    + Allocate Points
+                                </button>
+                                <button class="btn btn-secondary" @click="showRedemptionModal()">
+                                    - Redeem Points
+                                </button>
+                            </div>
+                            
+                            <div class="points-history" x-show="pointsHistory.length > 0">
+                                <h4>Recent Activity</h4>
+                                <div class="history-list">
+                                    <template x-for="(item, index) in pointsHistory" :key="index">
+                                        <div class="history-item">
+                                            <div class="history-info">
+                                                <span class="history-type" x-text="item.type"></span>
+                                                <span class="history-date" x-text="formatDate(item.date)"></span>
+                                            </div>
+                                            <div class="history-details">
+                                                <span class="history-description" x-text="item.description"></span>
+                                                <span class="history-points" 
+                                                      :class="item.type === 'EARNED' ? 'positive' : 'negative'"
+                                                      x-text="`${item.points > 0 ? '+' : ''}${item.points} pts`">
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <div x-show="pointsHistory.length === 0 && !loading" class="no-results">
+                                <p>No point activity found for this member.</p>
+                            </div>
+                        </div>
+                        
+                        <div x-show="!selectedMember" class="empty-state">
+                            <div class="empty-icon">🎯</div>
+                            <h3>Points Management</h3>
+                            <p>Select a member to view and manage their points.</p>
+                        </div>
+                        
+                        <div x-show="loading" class="loading">
+                            📡 Loading points data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Points Allocation Modal -->
+    <div x-data="pointsAllocationModal()" x-init="init()" class="modal-overlay" x-show="isOpen" @click.self="close()">
+        <div class="modal-content" @click.away="close()">
+            <div class="modal-header">
+                <h3>Allocate Points</h3>
+                <button @click="close()" class="modal-close">×</button>
+            </div>
+            
+            <form @submit.prevent="submitForm()" class="modal-body">
+                <div class="form-group">
+                    <label>Member</label>
+                    <div class="form-input-readonly" x-text="memberCallSign"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventSelect">Event *</label>
+                    <select id="eventSelect" x-model.number="formData.event_id" required class="form-select">
+                        <option value="">Select an event...</option>
+                        <template x-for="event in events" :key="event.id">
+                            <option :value="event.id" x-text="`${event.name} (${event.default_points_allocated} default points)`"></option>
+                        </template>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="allocatePoints">Points</label>
+                    <input type="number" id="allocatePoints" x-model.number="formData.points" min="0" max="100" class="form-input" placeholder="Leave blank to use event default">
+                    <small class="form-help">Optional: Override event default points (0-100)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="allocateNotes">Notes</label>
+                    <textarea id="allocateNotes" x-model="formData.notes" class="form-textarea" rows="3" placeholder="Optional notes about this allocation"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" @click="close()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" :disabled="submitting" class="btn btn-primary">
+                        <span x-show="!submitting">Allocate Points</span>
+                        <span x-show="submitting">Processing...</span>
+                    </button>
+                </div>
+                
+                <div x-show="error" class="error-message" x-text="error"></div>
+                <div x-show="success" class="success-message" x-text="success"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Points Redemption Modal -->
+    <div x-data="pointsRedemptionModal()" x-init="init()" class="modal-overlay" x-show="isOpen" @click.self="close()">
+        <div class="modal-content" @click.away="close()">
+            <div class="modal-header">
+                <h3>Redeem Points</h3>
+                <button @click="close()" class="modal-close">×</button>
+            </div>
+            
+            <form @submit.prevent="submitForm()" class="modal-body">
+                <div class="form-group">
+                    <label>Member</label>
+                    <div class="form-input-readonly" x-text="memberCallSign"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Current Balance</label>
+                    <div class="form-input-readonly" x-text="`${currentBalance} points`"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="redeemPoints">Points to Redeem *</label>
+                    <input type="number" id="redeemPoints" x-model.number="formData.points" required min="1" :max="currentBalance" class="form-input">
+                    <small class="form-help" x-text="`Maximum: ${currentBalance} points`"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="redeemNotes">Notes *</label>
+                    <textarea id="redeemNotes" x-model="formData.notes" required class="form-textarea" rows="3" placeholder="Describe what the points are being redeemed for"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" @click="close()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" :disabled="submitting || formData.points > currentBalance" class="btn btn-primary">
+                        <span x-show="!submitting">Redeem Points</span>
+                        <span x-show="submitting">Processing...</span>
+                    </button>
+                </div>
+                
+                <div x-show="formData.points > currentBalance" class="error-message">
+                    Cannot redeem more points than available balance
+                </div>
+                <div x-show="error" class="error-message" x-text="error"></div>
+                <div x-show="success" class="success-message" x-text="success"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        // Load navigation
+        fetch('components/nav.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('nav-placeholder').innerHTML = data;
+            });
+
+        // Points Management Component
+        function pointsManagement() {
+            return {
+                members: [],
+                selectedMember: '',
+                memberBalance: 0,
+                pointsHistory: [],
+                loading: false,
+                membersLoaded: false,
+                
+                init() {
+                    // Check if there's a member in the URL params
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const memberParam = urlParams.get('member');
+                    if (memberParam) {
+                        this.selectedMember = memberParam;
+                        // Remove the parameter from URL without refresh
+                        const url = new URL(window.location);
+                        url.searchParams.delete('member');
+                        window.history.replaceState({}, document.title, url.pathname);
+                    }
+                },
+                
+                async loadMembers() {
+                    try {
+                        const response = await fetch('/api/members');
+                        this.members = await response.json();
+                        this.membersLoaded = true;
+                        // If member was pre-selected, load their points
+                        if (this.selectedMember) {
+                            await this.loadMemberPoints();
+                        }
+                    } catch (error) {
+                        console.error('Failed to load members:', error);
+                        this.members = [];
+                        this.membersLoaded = true;
+                    }
+                },
+                
+                async loadMemberPoints() {
+                    if (!this.selectedMember) {
+                        this.pointsHistory = [];
+                        this.memberBalance = 0;
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/members/${this.selectedMember}/points`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.memberBalance = data.current_balance || 0;
+                            this.pointsHistory = data.transactions || [];
+                        } else {
+                            this.pointsHistory = [];
+                            this.memberBalance = 0;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load member points:', error);
+                        this.pointsHistory = [];
+                        this.memberBalance = 0;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                showAllocationModal() {
+                    if (window.pointsAllocationModalInstance) {
+                        window.pointsAllocationModalInstance.showModal(this.selectedMember);
+                    }
+                },
+                
+                showRedemptionModal() {
+                    if (window.pointsRedemptionModalInstance) {
+                        window.pointsRedemptionModalInstance.showModal(this.selectedMember, this.memberBalance);
+                    }
+                },
+                
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleDateString();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

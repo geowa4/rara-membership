@@ -80,11 +80,16 @@ func GetMemberPoints(w http.ResponseWriter, r *http.Request) {
 
 	for _, deduction := range deductions {
 		totalRedeemed += deduction.Points
+		// Use notes as description if available, otherwise use generic text
+		description := deduction.Notes
+		if description == "" {
+			description = "Points Redeemed"
+		}
 		transactions = append(transactions, TransactionDetail{
 			Type:        "REDEEMED",
 			Points:      -deduction.Points,
 			Date:        deduction.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			Description: "Points Redeemed",
+			Description: description,
 			Notes:       deduction.Notes,
 		})
 	}

@@ -823,9 +823,26 @@ body {
     cursor: not-allowed;
 }
 
+.form-input-readonly {
+    padding: 0.75rem 1rem;
+    background-color: var(--gray-light);
+    color: var(--gray-dark);
+    border: 2px solid var(--gray-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
 .form-textarea {
     resize: vertical;
     min-height: 80px;
+}
+
+.form-help {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--gray-medium);
+    margin-top: 0.25rem;
 }
 
 .form-group input[type="checkbox"] {

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - RARA Membership System</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation will be loaded here -->
+        <div id="nav-placeholder"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="section">
+                <div x-data="eventsList()" x-init="loadEvents()">
+                    <header class="section-header">
+                        <h2>📅 Club Events</h2>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" @click="window.eventModalInstance.showCreateModal()">+ Add Event</button>
+                        </div>
+                    </header>
+                    
+                    <div class="content-card">
+                        <div x-show="loading" class="loading">
+                            📡 Loading events...
+                        </div>
+                        
+                        <div x-show="!loading && events.length > 0">
+                            <!-- Search and Filter Controls -->
+                            <div class="filter-controls">
+                                <input 
+                                    type="search" 
+                                    placeholder="Search events..." 
+                                    class="search-input"
+                                    x-model="searchTerm"
+                                    @input="filterEvents()">
+                                <select x-model="timeFilter" @change="loadEvents()" class="filter-select">
+                                    <option value="upcoming">Upcoming Events</option>
+                                    <option value="all">All Events</option>
+                                    <option value="past">Past Events</option>
+                                </select>
+                            </div>
+                            <div class="events-grid">
+                                <template x-for="event in filteredEvents" :key="event.id">
+                                    <div class="event-card">
+                                        <div class="event-card-header">
+                                            <h4 x-text="event.name"></h4>
+                                            <div class="event-actions">
+                                                <button class="btn btn-small" @click="window.eventModalInstance.showEditModal(event)">Edit</button>
+                                            </div>
+                                        </div>
+                                        <p x-text="event.description || 'No description provided'"></p>
+                                        <div class="event-meta">
+                                            <span>📅 <span x-text="formatDate(event.date)"></span></span>
+                                            <span>🎯 <span x-text="event.default_points_allocated"></span> points</span>
+                                            <span>📍 <span x-text="event.latitude && event.longitude ? `${event.latitude}, ${event.longitude}` : 'Location TBD'"></span></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div x-show="filteredEvents.length === 0 && !loading" class="no-results">
+                                <p>No events match your search criteria.</p>
+                            </div>
+                        </div>
+                        
+                        <div x-show="!loading && events.length === 0" class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <h3>No Events Scheduled</h3>
+                            <p>Create your first club event.</p>
+                            <button class="btn btn-primary" @click="window.eventModalInstance.showCreateModal()">+ Add First Event</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Event Modal -->
+    <div x-data="eventModal()" x-init="init()" class="modal-overlay" x-show="isOpen" @click.self="close()">
+        <div class="modal-content" @click.away="close()">
+            <div class="modal-header">
+                <h3 x-text="isEditing ? 'Edit Event' : 'Add New Event'"></h3>
+                <button @click="close()" class="modal-close">×</button>
+            </div>
+            
+            <form @submit.prevent="submitForm()" class="modal-body">
+                <div class="form-group">
+                    <label for="eventName">Event Name *</label>
+                    <input type="text" id="eventName" x-model="formData.name" required class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" x-model="formData.description" class="form-textarea" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventDate">Date *</label>
+                        <input type="date" id="eventDate" x-model="formData.date" required class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventPoints">Points *</label>
+                        <input type="number" id="eventPoints" x-model.number="formData.points" required min="0" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventLatitude">Latitude</label>
+                        <input type="number" id="eventLatitude" x-model.number="formData.latitude" step="0.000001" min="-90" max="90" class="form-input" placeholder="e.g. 43.1566">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventLongitude">Longitude</label>
+                        <input type="number" id="eventLongitude" x-model.number="formData.longitude" step="0.000001" min="-180" max="180" class="form-input" placeholder="e.g. -77.6088">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" @click="close()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" :disabled="submitting" class="btn btn-primary">
+                        <span x-show="!submitting" x-text="isEditing ? 'Update Event' : 'Create Event'"></span>
+                        <span x-show="submitting">Saving...</span>
+                    </button>
+                </div>
+                
+                <div x-show="error" class="error-message" x-text="error"></div>
+                <div x-show="success" class="success-message" x-text="success"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        // Load navigation
+        fetch('components/nav.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('nav-placeholder').innerHTML = data;
+            });
+
+        // Events List Component
+        function eventsList() {
+            return {
+                events: [],
+                filteredEvents: [],
+                loading: true,
+                searchTerm: '',
+                timeFilter: 'upcoming', // Default to upcoming events
+                
+                async loadEvents() {
+                    this.loading = true;
+                    try {
+                        // Build URL with filter parameter
+                        const url = this.timeFilter === 'all' 
+                            ? '/api/events' 
+                            : `/api/events?filter=${this.timeFilter}`;
+                        
+                        const response = await fetch(url);
+                        this.events = await response.json();
+                        this.filteredEvents = [...this.events];
+                        this.filterEvents(); // Apply search filter
+                    } catch (error) {
+                        console.error('Failed to load events:', error);
+                        this.events = [];
+                        this.filteredEvents = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                filterEvents() {
+                    let filtered = [...this.events];
+                    
+                    if (this.searchTerm.trim()) {
+                        const term = this.searchTerm.toLowerCase().trim();
+                        filtered = filtered.filter(event => 
+                            event.name.toLowerCase().includes(term) ||
+                            (event.description && event.description.toLowerCase().includes(term)) ||
+                            (event.location && event.location.toLowerCase().includes(term))
+                        );
+                    }
+                    
+                    this.filteredEvents = filtered;
+                },
+                
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleDateString();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

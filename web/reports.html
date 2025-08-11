@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - RARA Membership System</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation will be loaded here -->
+        <div id="nav-placeholder"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="section">
+                <header class="section-header">
+                    <h2>📊 Reports</h2>
+                </header>
+                
+                <div class="content-card">
+                    <div class="coming-soon">
+                        <div class="empty-icon">📊</div>
+                        <h3>Reporting Dashboard</h3>
+                        <p>Member and activity reports coming soon.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Load navigation
+        fetch('components/nav.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('nav-placeholder').innerHTML = data;
+            });
+    </script>
+</body>
+</html>
