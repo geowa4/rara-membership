@@ -42,6 +42,7 @@ type EventMutation struct {
 	name                        *string
 	description                 *string
 	date                        *time.Time
+	timezone                    *string
 	latitude                    *float64
 	addlatitude                 *float64
 	longitude                   *float64
@@ -261,6 +262,42 @@ func (m *EventMutation) OldDate(ctx context.Context) (v time.Time, err error) {
 // ResetDate resets all changes to the "date" field.
 func (m *EventMutation) ResetDate() {
 	m.date = nil
+}
+
+// SetTimezone sets the "timezone" field.
+func (m *EventMutation) SetTimezone(s string) {
+	m.timezone = &s
+}
+
+// Timezone returns the value of the "timezone" field in the mutation.
+func (m *EventMutation) Timezone() (r string, exists bool) {
+	v := m.timezone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimezone returns the old "timezone" field's value of the Event entity.
+// If the Event object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventMutation) OldTimezone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimezone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimezone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimezone: %w", err)
+	}
+	return oldValue.Timezone, nil
+}
+
+// ResetTimezone resets all changes to the "timezone" field.
+func (m *EventMutation) ResetTimezone() {
+	m.timezone = nil
 }
 
 // SetLatitude sets the "latitude" field.
@@ -519,7 +556,7 @@ func (m *EventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EventMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, event.FieldName)
 	}
@@ -528,6 +565,9 @@ func (m *EventMutation) Fields() []string {
 	}
 	if m.date != nil {
 		fields = append(fields, event.FieldDate)
+	}
+	if m.timezone != nil {
+		fields = append(fields, event.FieldTimezone)
 	}
 	if m.latitude != nil {
 		fields = append(fields, event.FieldLatitude)
@@ -552,6 +592,8 @@ func (m *EventMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case event.FieldDate:
 		return m.Date()
+	case event.FieldTimezone:
+		return m.Timezone()
 	case event.FieldLatitude:
 		return m.Latitude()
 	case event.FieldLongitude:
@@ -573,6 +615,8 @@ func (m *EventMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldDescription(ctx)
 	case event.FieldDate:
 		return m.OldDate(ctx)
+	case event.FieldTimezone:
+		return m.OldTimezone(ctx)
 	case event.FieldLatitude:
 		return m.OldLatitude(ctx)
 	case event.FieldLongitude:
@@ -608,6 +652,13 @@ func (m *EventMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDate(v)
+		return nil
+	case event.FieldTimezone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimezone(v)
 		return nil
 	case event.FieldLatitude:
 		v, ok := value.(float64)
@@ -726,6 +777,9 @@ func (m *EventMutation) ResetField(name string) error {
 		return nil
 	case event.FieldDate:
 		m.ResetDate()
+		return nil
+	case event.FieldTimezone:
+		m.ResetTimezone()
 		return nil
 	case event.FieldLatitude:
 		m.ResetLatitude()

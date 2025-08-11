@@ -206,16 +206,35 @@
                 membersLoaded: false,
                 
                 init() {
-                    // Check if there's a member in the URL params
+                    // Check if there's a member in the URL params or hash
+                    this.loadSelectedMemberFromUrl();
+                },
+                
+                loadSelectedMemberFromUrl() {
+                    // Check query parameter first
                     const urlParams = new URLSearchParams(window.location.search);
                     const memberParam = urlParams.get('member');
+                    
+                    // Check hash parameter as fallback
+                    const hash = window.location.hash;
+                    const hashMatch = hash.match(/member=([^&]+)/);
+                    const hashMember = hashMatch ? decodeURIComponent(hashMatch[1]) : null;
+                    
                     if (memberParam) {
                         this.selectedMember = memberParam;
-                        // Remove the parameter from URL without refresh
-                        const url = new URL(window.location);
-                        url.searchParams.delete('member');
-                        window.history.replaceState({}, document.title, url.pathname);
+                        // Convert query param to hash and remove from query
+                        this.updateUrlWithMember(memberParam);
+                    } else if (hashMember) {
+                        this.selectedMember = hashMember;
                     }
+                },
+                
+                updateUrlWithMember(memberCallSign) {
+                    // Update URL hash with member selection
+                    const url = new URL(window.location);
+                    url.searchParams.delete('member'); // Remove query param if exists
+                    url.hash = memberCallSign ? `member=${encodeURIComponent(memberCallSign)}` : '';
+                    window.history.replaceState({}, document.title, url.toString());
                 },
                 
                 async loadMembers() {
@@ -238,8 +257,13 @@
                     if (!this.selectedMember) {
                         this.pointsHistory = [];
                         this.memberBalance = 0;
+                        // Clear URL hash when no member selected
+                        this.updateUrlWithMember('');
                         return;
                     }
+                    
+                    // Update URL with selected member
+                    this.updateUrlWithMember(this.selectedMember);
                     
                     this.loading = true;
                     try {

@@ -17,8 +17,25 @@ func ListEvents(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	eventService := services.NewEventService(database.Client)
 
-	// Get filter parameter from query string
+	// Get parameters from query string
 	filter := r.URL.Query().Get("filter")
+	perPageStr := r.URL.Query().Get("perPage")
+	beforeIDStr := r.URL.Query().Get("beforeID")
+	
+	// Parse pagination parameters
+	perPage := 50 // Default
+	if perPageStr != "" {
+		if parsed, err := strconv.Atoi(perPageStr); err == nil && parsed > 0 {
+			perPage = parsed
+		}
+	}
+	
+	var beforeID *int
+	if beforeIDStr != "" {
+		if parsed, err := strconv.Atoi(beforeIDStr); err == nil {
+			beforeID = &parsed
+		}
+	}
 	
 	var events []*ent.Event
 	var err error
@@ -29,8 +46,12 @@ func ListEvents(w http.ResponseWriter, r *http.Request) {
 	case "upcoming":
 		events, err = eventService.ListUpcomingEvents(ctx)
 	default:
-		// Default to all events
-		events, err = eventService.ListEvents(ctx)
+		// Use pagination for default case (all events)
+		if beforeID != nil || perPage != 50 {
+			events, err = eventService.ListEventsPaginated(ctx, perPage, beforeID)
+		} else {
+			events, err = eventService.ListEvents(ctx)
+		}
 	}
 	
 	if err != nil {
@@ -50,6 +71,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 		Name        string   `json:"name"`
 		Description string   `json:"description"`
 		Date        *string  `json:"date"`
+		Timezone    *string  `json:"timezone"`
 		Points      int      `json:"points"`
 		Latitude    *float64 `json:"latitude"`
 		Longitude   *float64 `json:"longitude"`
@@ -63,7 +85,10 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	// Parse date if provided
 	var eventDate *time.Time
 	if input.Date != nil && *input.Date != "" {
-		if parsed, err := time.Parse("2006-01-02", *input.Date); err == nil {
+		// Try datetime-local format first (YYYY-MM-DDTHH:mm), then date format (YYYY-MM-DD)
+		if parsed, err := time.Parse("2006-01-02T15:04", *input.Date); err == nil {
+			eventDate = &parsed
+		} else if parsed, err := time.Parse("2006-01-02", *input.Date); err == nil {
 			eventDate = &parsed
 		}
 	}
@@ -71,7 +96,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	eventService := services.NewEventService(database.Client)
 
-	event, err := eventService.CreateEvent(ctx, input.Name, input.Description, eventDate, input.Latitude, input.Longitude, input.Points)
+	event, err := eventService.CreateEvent(ctx, input.Name, input.Description, eventDate, input.Timezone, input.Latitude, input.Longitude, input.Points)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to create event: %v", err), http.StatusInternalServerError)
 		return
@@ -102,6 +127,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Name        *string  `json:"name"`
 		Description *string  `json:"description"`
 		Date        *string  `json:"date"`
+		Timezone    *string  `json:"timezone"`
 		Points      *int     `json:"points"`
 		Latitude    *float64 `json:"latitude"`
 		Longitude   *float64 `json:"longitude"`
@@ -115,7 +141,10 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	// Parse date if provided
 	var eventDate *time.Time
 	if input.Date != nil && *input.Date != "" {
-		if parsed, err := time.Parse("2006-01-02", *input.Date); err == nil {
+		// Try datetime-local format first (YYYY-MM-DDTHH:mm), then date format (YYYY-MM-DD)
+		if parsed, err := time.Parse("2006-01-02T15:04", *input.Date); err == nil {
+			eventDate = &parsed
+		} else if parsed, err := time.Parse("2006-01-02", *input.Date); err == nil {
 			eventDate = &parsed
 		}
 	}
@@ -123,7 +152,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	eventService := services.NewEventService(database.Client)
 
-	event, err := eventService.UpdateEvent(ctx, eventID, input.Name, input.Description, eventDate, input.Latitude, input.Longitude, input.Points)
+	event, err := eventService.UpdateEvent(ctx, eventID, input.Name, input.Description, eventDate, input.Timezone, input.Latitude, input.Longitude, input.Points)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update event: %v", err), http.StatusInternalServerError)
 		return

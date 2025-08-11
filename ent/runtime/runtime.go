@@ -30,8 +30,12 @@ func init() {
 	eventDescDate := eventFields[2].Descriptor()
 	// event.DefaultDate holds the default value on creation for the date field.
 	event.DefaultDate = eventDescDate.Default.(func() time.Time)
+	// eventDescTimezone is the schema descriptor for timezone field.
+	eventDescTimezone := eventFields[3].Descriptor()
+	// event.DefaultTimezone holds the default value on creation for the timezone field.
+	event.DefaultTimezone = eventDescTimezone.Default.(string)
 	// eventDescLatitude is the schema descriptor for latitude field.
-	eventDescLatitude := eventFields[3].Descriptor()
+	eventDescLatitude := eventFields[4].Descriptor()
 	// event.DefaultLatitude holds the default value on creation for the latitude field.
 	event.DefaultLatitude = eventDescLatitude.Default.(float64)
 	// event.LatitudeValidator is a validator for the "latitude" field. It is called by the builders before save.
@@ -51,7 +55,7 @@ func init() {
 		}
 	}()
 	// eventDescLongitude is the schema descriptor for longitude field.
-	eventDescLongitude := eventFields[4].Descriptor()
+	eventDescLongitude := eventFields[5].Descriptor()
 	// event.DefaultLongitude holds the default value on creation for the longitude field.
 	event.DefaultLongitude = eventDescLongitude.Default.(float64)
 	// event.LongitudeValidator is a validator for the "longitude" field. It is called by the builders before save.
@@ -71,7 +75,7 @@ func init() {
 		}
 	}()
 	// eventDescDefaultPointsAllocated is the schema descriptor for default_points_allocated field.
-	eventDescDefaultPointsAllocated := eventFields[5].Descriptor()
+	eventDescDefaultPointsAllocated := eventFields[6].Descriptor()
 	// event.DefaultDefaultPointsAllocated holds the default value on creation for the default_points_allocated field.
 	event.DefaultDefaultPointsAllocated = eventDescDefaultPointsAllocated.Default.(int8)
 	// event.DefaultPointsAllocatedValidator is a validator for the "default_points_allocated" field. It is called by the builders before save.

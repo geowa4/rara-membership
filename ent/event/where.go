@@ -70,6 +70,11 @@ func Date(v time.Time) predicate.Event {
 	return predicate.Event(sql.FieldEQ(FieldDate, v))
 }
 
+// Timezone applies equality check predicate on the "timezone" field. It's identical to TimezoneEQ.
+func Timezone(v string) predicate.Event {
+	return predicate.Event(sql.FieldEQ(FieldTimezone, v))
+}
+
 // Latitude applies equality check predicate on the "latitude" field. It's identical to LatitudeEQ.
 func Latitude(v float64) predicate.Event {
 	return predicate.Event(sql.FieldEQ(FieldLatitude, v))
@@ -253,6 +258,71 @@ func DateLT(v time.Time) predicate.Event {
 // DateLTE applies the LTE predicate on the "date" field.
 func DateLTE(v time.Time) predicate.Event {
 	return predicate.Event(sql.FieldLTE(FieldDate, v))
+}
+
+// TimezoneEQ applies the EQ predicate on the "timezone" field.
+func TimezoneEQ(v string) predicate.Event {
+	return predicate.Event(sql.FieldEQ(FieldTimezone, v))
+}
+
+// TimezoneNEQ applies the NEQ predicate on the "timezone" field.
+func TimezoneNEQ(v string) predicate.Event {
+	return predicate.Event(sql.FieldNEQ(FieldTimezone, v))
+}
+
+// TimezoneIn applies the In predicate on the "timezone" field.
+func TimezoneIn(vs ...string) predicate.Event {
+	return predicate.Event(sql.FieldIn(FieldTimezone, vs...))
+}
+
+// TimezoneNotIn applies the NotIn predicate on the "timezone" field.
+func TimezoneNotIn(vs ...string) predicate.Event {
+	return predicate.Event(sql.FieldNotIn(FieldTimezone, vs...))
+}
+
+// TimezoneGT applies the GT predicate on the "timezone" field.
+func TimezoneGT(v string) predicate.Event {
+	return predicate.Event(sql.FieldGT(FieldTimezone, v))
+}
+
+// TimezoneGTE applies the GTE predicate on the "timezone" field.
+func TimezoneGTE(v string) predicate.Event {
+	return predicate.Event(sql.FieldGTE(FieldTimezone, v))
+}
+
+// TimezoneLT applies the LT predicate on the "timezone" field.
+func TimezoneLT(v string) predicate.Event {
+	return predicate.Event(sql.FieldLT(FieldTimezone, v))
+}
+
+// TimezoneLTE applies the LTE predicate on the "timezone" field.
+func TimezoneLTE(v string) predicate.Event {
+	return predicate.Event(sql.FieldLTE(FieldTimezone, v))
+}
+
+// TimezoneContains applies the Contains predicate on the "timezone" field.
+func TimezoneContains(v string) predicate.Event {
+	return predicate.Event(sql.FieldContains(FieldTimezone, v))
+}
+
+// TimezoneHasPrefix applies the HasPrefix predicate on the "timezone" field.
+func TimezoneHasPrefix(v string) predicate.Event {
+	return predicate.Event(sql.FieldHasPrefix(FieldTimezone, v))
+}
+
+// TimezoneHasSuffix applies the HasSuffix predicate on the "timezone" field.
+func TimezoneHasSuffix(v string) predicate.Event {
+	return predicate.Event(sql.FieldHasSuffix(FieldTimezone, v))
+}
+
+// TimezoneEqualFold applies the EqualFold predicate on the "timezone" field.
+func TimezoneEqualFold(v string) predicate.Event {
+	return predicate.Event(sql.FieldEqualFold(FieldTimezone, v))
+}
+
+// TimezoneContainsFold applies the ContainsFold predicate on the "timezone" field.
+func TimezoneContainsFold(v string) predicate.Event {
+	return predicate.Event(sql.FieldContainsFold(FieldTimezone, v))
 }
 
 // LatitudeEQ applies the EQ predicate on the "latitude" field.

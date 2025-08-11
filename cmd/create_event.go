@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/huh"
+	"github.com/geowa4/rara-membership/database"
 	"github.com/geowa4/rara-membership/services"
 	"github.com/geowa4/rara-membership/validation"
 	"github.com/spf13/cobra"
@@ -20,6 +21,7 @@ var createEventCmd = &cobra.Command{
 			name             string
 			description      string
 			dateStr          string
+			timezone         string = "America/New_York"
 			latitudeStr      string
 			longitudeStr     string
 			defaultPointsStr string = "10"
@@ -49,6 +51,21 @@ var createEventCmd = &cobra.Command{
 					Value(&dateStr).
 					Placeholder(defaultDate).
 					Validate(validation.ValidateEventDateString),
+
+				huh.NewSelect[string]().
+					Title("Time Zone").
+					Description("Select the timezone for this event").
+					Value(&timezone).
+					Options(
+						huh.NewOption("Eastern Time", "America/New_York"),
+						huh.NewOption("Central Time", "America/Chicago"),
+						huh.NewOption("Mountain Time", "America/Denver"),
+						huh.NewOption("Pacific Time", "America/Los_Angeles"),
+						huh.NewOption("Arizona Time", "America/Phoenix"),
+						huh.NewOption("Alaska Time", "America/Anchorage"),
+						huh.NewOption("Hawaii Time", "Pacific/Honolulu"),
+						huh.NewOption("UTC", "UTC"),
+					),
 
 				huh.NewInput().
 					Title("Latitude (optional)").
@@ -118,8 +135,10 @@ var createEventCmd = &cobra.Command{
 			return err
 		}
 
-		// Create the event
-		event, err := services.CreateEvent(name, description, eventDate, latitude, longitude, int8(defaultPoints))
+		// Create the event using the service
+		ctx := cmd.Context()
+		eventService := services.NewEventService(database.Client)
+		event, err := eventService.CreateEvent(ctx, name, description, &eventDate, &timezone, &latitude, &longitude, defaultPoints)
 		if err != nil {
 			return fmt.Errorf("failed to create event: %w", err)
 		}
@@ -130,6 +149,7 @@ var createEventCmd = &cobra.Command{
 		fmt.Printf("Name: %s\n", event.Name)
 		fmt.Printf("Description: %s\n", event.Description)
 		fmt.Printf("Date: %s\n", event.Date.Format("2006-01-02 15:04"))
+		fmt.Printf("Time Zone: %s\n", event.Timezone)
 		if latitude != 0 || longitude != 0 {
 			fmt.Printf("Location: %.4f, %.4f\n", event.Latitude, event.Longitude)
 		}

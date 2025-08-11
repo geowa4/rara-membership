@@ -47,6 +47,20 @@ func (_c *EventCreate) SetNillableDate(v *time.Time) *EventCreate {
 	return _c
 }
 
+// SetTimezone sets the "timezone" field.
+func (_c *EventCreate) SetTimezone(v string) *EventCreate {
+	_c.mutation.SetTimezone(v)
+	return _c
+}
+
+// SetNillableTimezone sets the "timezone" field if the given value is not nil.
+func (_c *EventCreate) SetNillableTimezone(v *string) *EventCreate {
+	if v != nil {
+		_c.SetTimezone(*v)
+	}
+	return _c
+}
+
 // SetLatitude sets the "latitude" field.
 func (_c *EventCreate) SetLatitude(v float64) *EventCreate {
 	_c.mutation.SetLatitude(v)
@@ -143,6 +157,10 @@ func (_c *EventCreate) defaults() {
 		v := event.DefaultDate()
 		_c.mutation.SetDate(v)
 	}
+	if _, ok := _c.mutation.Timezone(); !ok {
+		v := event.DefaultTimezone
+		_c.mutation.SetTimezone(v)
+	}
 	if _, ok := _c.mutation.Latitude(); !ok {
 		v := event.DefaultLatitude
 		_c.mutation.SetLatitude(v)
@@ -177,6 +195,9 @@ func (_c *EventCreate) check() error {
 	}
 	if _, ok := _c.mutation.Date(); !ok {
 		return &ValidationError{Name: "date", err: errors.New(`ent: missing required field "Event.date"`)}
+	}
+	if _, ok := _c.mutation.Timezone(); !ok {
+		return &ValidationError{Name: "timezone", err: errors.New(`ent: missing required field "Event.timezone"`)}
 	}
 	if _, ok := _c.mutation.Latitude(); !ok {
 		return &ValidationError{Name: "latitude", err: errors.New(`ent: missing required field "Event.latitude"`)}
@@ -239,6 +260,10 @@ func (_c *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Date(); ok {
 		_spec.SetField(event.FieldDate, field.TypeTime, value)
 		_node.Date = value
+	}
+	if value, ok := _c.mutation.Timezone(); ok {
+		_spec.SetField(event.FieldTimezone, field.TypeString, value)
+		_node.Timezone = value
 	}
 	if value, ok := _c.mutation.Latitude(); ok {
 		_spec.SetField(event.FieldLatitude, field.TypeFloat64, value)

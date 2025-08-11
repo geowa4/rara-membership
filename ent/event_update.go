@@ -71,6 +71,20 @@ func (_u *EventUpdate) SetNillableDate(v *time.Time) *EventUpdate {
 	return _u
 }
 
+// SetTimezone sets the "timezone" field.
+func (_u *EventUpdate) SetTimezone(v string) *EventUpdate {
+	_u.mutation.SetTimezone(v)
+	return _u
+}
+
+// SetNillableTimezone sets the "timezone" field if the given value is not nil.
+func (_u *EventUpdate) SetNillableTimezone(v *string) *EventUpdate {
+	if v != nil {
+		_u.SetTimezone(*v)
+	}
+	return _u
+}
+
 // SetLatitude sets the "latitude" field.
 func (_u *EventUpdate) SetLatitude(v float64) *EventUpdate {
 	_u.mutation.ResetLatitude()
@@ -253,6 +267,9 @@ func (_u *EventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Date(); ok {
 		_spec.SetField(event.FieldDate, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.Timezone(); ok {
+		_spec.SetField(event.FieldTimezone, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Latitude(); ok {
 		_spec.SetField(event.FieldLatitude, field.TypeFloat64, value)
 	}
@@ -374,6 +391,20 @@ func (_u *EventUpdateOne) SetDate(v time.Time) *EventUpdateOne {
 func (_u *EventUpdateOne) SetNillableDate(v *time.Time) *EventUpdateOne {
 	if v != nil {
 		_u.SetDate(*v)
+	}
+	return _u
+}
+
+// SetTimezone sets the "timezone" field.
+func (_u *EventUpdateOne) SetTimezone(v string) *EventUpdateOne {
+	_u.mutation.SetTimezone(v)
+	return _u
+}
+
+// SetNillableTimezone sets the "timezone" field if the given value is not nil.
+func (_u *EventUpdateOne) SetNillableTimezone(v *string) *EventUpdateOne {
+	if v != nil {
+		_u.SetTimezone(*v)
 	}
 	return _u
 }
@@ -589,6 +620,9 @@ func (_u *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error)
 	}
 	if value, ok := _u.mutation.Date(); ok {
 		_spec.SetField(event.FieldDate, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Timezone(); ok {
+		_spec.SetField(event.FieldTimezone, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Latitude(); ok {
 		_spec.SetField(event.FieldLatitude, field.TypeFloat64, value)

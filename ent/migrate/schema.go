@@ -15,8 +15,9 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "date", Type: field.TypeTime},
-		{Name: "latitude", Type: field.TypeFloat64, Default: 0},
-		{Name: "longitude", Type: field.TypeFloat64, Default: 0},
+		{Name: "timezone", Type: field.TypeString, Default: "America/New_York"},
+		{Name: "latitude", Type: field.TypeFloat64, Default: 43.138},
+		{Name: "longitude", Type: field.TypeFloat64, Default: -77.572},
 		{Name: "default_points_allocated", Type: field.TypeInt8, Default: 10},
 	}
 	// EventsTable holds the schema information for the "events" table.
@@ -24,6 +25,16 @@ var (
 		Name:       "events",
 		Columns:    EventsColumns,
 		PrimaryKey: []*schema.Column{EventsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "event_date",
+				Unique:  false,
+				Columns: []*schema.Column{EventsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Desc: true,
+				},
+			},
+		},
 	}
 	// MembersColumns holds the columns for the "members" table.
 	MembersColumns = []*schema.Column{

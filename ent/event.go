@@ -23,6 +23,8 @@ type Event struct {
 	Description string `json:"description,omitempty"`
 	// Date holds the value of the "date" field.
 	Date time.Time `json:"date,omitempty"`
+	// IANA timezone identifier for the event
+	Timezone string `json:"timezone,omitempty"`
 	// Latitude holds the value of the "latitude" field.
 	Latitude float64 `json:"latitude,omitempty"`
 	// Longitude holds the value of the "longitude" field.
@@ -62,7 +64,7 @@ func (*Event) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case event.FieldID, event.FieldDefaultPointsAllocated:
 			values[i] = new(sql.NullInt64)
-		case event.FieldName, event.FieldDescription:
+		case event.FieldName, event.FieldDescription, event.FieldTimezone:
 			values[i] = new(sql.NullString)
 		case event.FieldDate:
 			values[i] = new(sql.NullTime)
@@ -104,6 +106,12 @@ func (_m *Event) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field date", values[i])
 			} else if value.Valid {
 				_m.Date = value.Time
+			}
+		case event.FieldTimezone:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field timezone", values[i])
+			} else if value.Valid {
+				_m.Timezone = value.String
 			}
 		case event.FieldLatitude:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -172,6 +180,9 @@ func (_m *Event) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("date=")
 	builder.WriteString(_m.Date.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("timezone=")
+	builder.WriteString(_m.Timezone)
 	builder.WriteString(", ")
 	builder.WriteString("latitude=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Latitude))

@@ -20,6 +20,8 @@ const (
 	FieldDescription = "description"
 	// FieldDate holds the string denoting the date field in the database.
 	FieldDate = "date"
+	// FieldTimezone holds the string denoting the timezone field in the database.
+	FieldTimezone = "timezone"
 	// FieldLatitude holds the string denoting the latitude field in the database.
 	FieldLatitude = "latitude"
 	// FieldLongitude holds the string denoting the longitude field in the database.
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldDate,
+	FieldTimezone,
 	FieldLatitude,
 	FieldLongitude,
 	FieldDefaultPointsAllocated,
@@ -67,6 +70,8 @@ var (
 	DescriptionValidator func(string) error
 	// DefaultDate holds the default value on creation for the "date" field.
 	DefaultDate func() time.Time
+	// DefaultTimezone holds the default value on creation for the "timezone" field.
+	DefaultTimezone string
 	// DefaultLatitude holds the default value on creation for the "latitude" field.
 	DefaultLatitude float64
 	// LatitudeValidator is a validator for the "latitude" field. It is called by the builders before save.
@@ -102,6 +107,11 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByDate orders the results by the date field.
 func ByDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDate, opts...).ToFunc()
+}
+
+// ByTimezone orders the results by the timezone field.
+func ByTimezone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTimezone, opts...).ToFunc()
 }
 
 // ByLatitude orders the results by the latitude field.

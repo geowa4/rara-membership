@@ -142,9 +142,10 @@ function eventModal() {
             name: '',
             description: '',
             date: '',
-            points: 0,
-            latitude: 0,
-            longitude: 0
+            timezone: 'America/New_York',
+            points: 10,
+            latitude: 43.138,
+            longitude: -77.572
         },
         
         init() {
@@ -164,7 +165,8 @@ function eventModal() {
                 id: event.id,
                 name: event.name || '',
                 description: event.description || '',
-                date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+                date: event.date ? new Date(event.date).toISOString().slice(0, 16) : '',
+                timezone: event.timezone || 'America/New_York',
                 points: event.default_points_allocated || 0,
                 latitude: event.latitude || 0,
                 longitude: event.longitude || 0
@@ -183,9 +185,10 @@ function eventModal() {
                 name: '',
                 description: '',
                 date: '',
-                points: 0,
-                latitude: 0,
-                longitude: 0
+                timezone: 'America/New_York',
+                points: 10,
+                latitude: 43.138,
+                longitude: -77.572
             };
         },
         
@@ -204,6 +207,56 @@ function eventModal() {
                 // Prepare data for submission
                 const submitData = { ...this.formData };
                 delete submitData.id; // Remove id from submission data
+                
+                // Convert datetime-local to UTC considering the selected timezone
+                if (submitData.date && submitData.timezone) {
+                    try {
+                        // Ensure we have a full datetime string
+                        const dateTimeString = submitData.date.includes('T') 
+                            ? submitData.date 
+                            : submitData.date + 'T12:00';
+                        
+                        // Add seconds if missing
+                        const fullDateTime = dateTimeString.includes(':') && dateTimeString.split(':').length === 2
+                            ? dateTimeString + ':00'
+                            : dateTimeString;
+                        
+                        // Create a date as if it's in UTC first
+                        const utcDate = new Date(fullDateTime + 'Z');
+                        
+                        // Format this date in the target timezone to get the actual local time
+                        const targetFormatter = new Intl.DateTimeFormat('sv-SE', { // Use Swedish format for ISO-like output
+                            timeZone: submitData.timezone,
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        });
+                        
+                        const targetTimeString = targetFormatter.format(utcDate);
+                        const targetDate = new Date(targetTimeString);
+                        
+                        // Calculate the offset between what we want and what we got
+                        const inputDateTime = new Date(fullDateTime);
+                        const offsetMillis = inputDateTime.getTime() - targetDate.getTime();
+                        
+                        // Apply the offset to get the correct UTC time
+                        const correctUtcDate = new Date(utcDate.getTime() + offsetMillis);
+                        submitData.date = correctUtcDate.toISOString().slice(0, 16);
+                        
+                        console.log('Timezone conversion:', {
+                            input: fullDateTime,
+                            timezone: submitData.timezone,
+                            result: submitData.date + 'Z'
+                        });
+                    } catch (error) {
+                        console.error('Error converting datetime with timezone:', error);
+                        // Fallback: keep original date
+                    }
+                }
                 
                 // Clean up empty strings first
                 Object.keys(submitData).forEach(key => {
@@ -338,9 +391,16 @@ function pointsAllocationModal() {
                 
                 this.success = 'Points allocated successfully!';
                 
-                // Refresh the current page
+                // Refresh the current page, preserving member selection
                 setTimeout(() => {
-                    window.location.reload();
+                    if (window.location.pathname.includes('points.html')) {
+                        // Stay on points page with member preserved in URL hash
+                        window.location.hash = `member=${encodeURIComponent(this.memberCallSign)}`;
+                        window.location.reload();
+                    } else {
+                        // Redirect to points page with member selection
+                        window.location.href = `points.html#member=${encodeURIComponent(this.memberCallSign)}`;
+                    }
                 }, 1500);
                 
             } catch (error) {
@@ -421,9 +481,16 @@ function pointsRedemptionModal() {
                 
                 this.success = 'Points redeemed successfully!';
                 
-                // Refresh the current page  
+                // Refresh the current page, preserving member selection
                 setTimeout(() => {
-                    window.location.reload();
+                    if (window.location.pathname.includes('points.html')) {
+                        // Stay on points page with member preserved in URL hash
+                        window.location.hash = `member=${encodeURIComponent(this.memberCallSign)}`;
+                        window.location.reload();
+                    } else {
+                        // Redirect to points page with member selection
+                        window.location.href = `points.html#member=${encodeURIComponent(this.memberCallSign)}`;
+                    }
                 }, 1500);
                 
             } catch (error) {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/geowa4/rara-membership/database"
@@ -79,16 +80,50 @@ func DeleteEvent(id int) error {
 	return database.Client.Event.DeleteOneID(id).Exec(ctx)
 }
 
-// ListEvents returns all events ordered by date
+// ListEvents returns events with pagination support, defaulting to last 50 events ordered by date descending
 func (s *EventService) ListEvents(ctx context.Context) ([]*ent.Event, error) {
-	return s.client.Event.Query().Order(ent.Desc(event.FieldDate)).All(ctx)
+	return s.client.Event.Query().
+		Order(ent.Desc(event.FieldDate)).
+		Limit(50).
+		All(ctx)
+}
+
+// ListEventsPaginated returns events with pagination support
+func (s *EventService) ListEventsPaginated(ctx context.Context, perPage int, beforeID *int) ([]*ent.Event, error) {
+	query := s.client.Event.Query().Order(ent.Desc(event.FieldDate))
+	
+	// Apply beforeID filter for cursor-based pagination
+	if beforeID != nil {
+		// Get the date of the beforeID event for proper cursor pagination
+		beforeEvent, err := s.client.Event.Get(ctx, *beforeID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get before event: %w", err)
+		}
+		// Return events with date less than the before event's date, or same date but higher ID
+		query = query.Where(
+			event.Or(
+				event.DateLT(beforeEvent.Date),
+				event.And(
+					event.DateEQ(beforeEvent.Date),
+					event.IDLT(*beforeID),
+				),
+			),
+		)
+	}
+	
+	// Apply pagination limit, with sensible defaults
+	if perPage <= 0 || perPage > 1000 {
+		perPage = 50 // Default to 50, max 1000
+	}
+	
+	return query.Limit(perPage).All(ctx)
 }
 
 // ListUpcomingEvents returns events happening after the current date
 func (s *EventService) ListUpcomingEvents(ctx context.Context) ([]*ent.Event, error) {
 	return s.client.Event.Query().
 		Where(event.DateGTE(time.Now())).
-		Order(ent.Asc(event.FieldDate)).
+		Order(ent.Desc(event.FieldDate)).
 		All(ctx)
 }
 
@@ -101,7 +136,7 @@ func (s *EventService) ListPastEvents(ctx context.Context) ([]*ent.Event, error)
 }
 
 // CreateEvent creates a new event with comprehensive parameters
-func (s *EventService) CreateEvent(ctx context.Context, name, description string, date *time.Time, latitude, longitude *float64, defaultPoints int) (*ent.Event, error) {
+func (s *EventService) CreateEvent(ctx context.Context, name, description string, date *time.Time, timezone *string, latitude, longitude *float64, defaultPoints int) (*ent.Event, error) {
 	create := s.client.Event.Create().
 		SetName(name).
 		SetDescription(description).
@@ -111,6 +146,10 @@ func (s *EventService) CreateEvent(ctx context.Context, name, description string
 		create = create.SetDate(*date)
 	} else {
 		create = create.SetDate(time.Now())
+	}
+	
+	if timezone != nil && *timezone != "" {
+		create = create.SetTimezone(*timezone)
 	}
 	
 	if latitude != nil {
@@ -125,7 +164,7 @@ func (s *EventService) CreateEvent(ctx context.Context, name, description string
 }
 
 // UpdateEvent updates an existing event with comprehensive parameters
-func (s *EventService) UpdateEvent(ctx context.Context, id int, name, description *string, date *time.Time, latitude, longitude *float64, defaultPoints *int) (*ent.Event, error) {
+func (s *EventService) UpdateEvent(ctx context.Context, id int, name, description *string, date *time.Time, timezone *string, latitude, longitude *float64, defaultPoints *int) (*ent.Event, error) {
 	update := s.client.Event.UpdateOneID(id)
 
 	if name != nil {
@@ -138,6 +177,10 @@ func (s *EventService) UpdateEvent(ctx context.Context, id int, name, descriptio
 
 	if date != nil {
 		update = update.SetDate(*date)
+	}
+
+	if timezone != nil && *timezone != "" {
+		update = update.SetTimezone(*timezone)
 	}
 
 	if latitude != nil {
