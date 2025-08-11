@@ -6,6 +6,11 @@
     box-sizing: border-box;
 }
 
+/* Hide elements with x-cloak until Alpine.js initializes */
+[x-cloak] {
+    display: none !important;
+}
+
 :root {
     /* Color Palette inspired by Alpine AJAX */
     --cream-bg: #F5F3E9;

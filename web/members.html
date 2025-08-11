@@ -98,7 +98,7 @@
     </div>
 
     <!-- Member Modal -->
-    <div x-data="memberModal()" x-init="init()" class="modal-overlay" x-show="isOpen" @click.self="close()">
+    <div x-data="memberModal()" x-init="init()" class="modal-overlay" x-show="isOpen" x-cloak @click.self="close()">
         <div class="modal-content" @click.away="close()">
             <div class="modal-header">
                 <h3 x-text="isEditing ? 'Edit Member' : 'Add New Member'"></h3>

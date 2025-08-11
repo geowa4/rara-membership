@@ -88,7 +88,7 @@
     </div>
 
     <!-- Event Modal -->
-    <div x-data="eventModal()" x-init="init()" class="modal-overlay" x-show="isOpen" @click.self="close()">
+    <div x-data="eventModal()" x-init="init()" class="modal-overlay" x-show="isOpen" x-cloak @click.self="close()">
         <div class="modal-content" @click.away="close()">
             <div class="modal-header">
                 <h3 x-text="isEditing ? 'Edit Event' : 'Add New Event'"></h3>
