@@ -57,7 +57,14 @@
                                         <div class="event-meta">
                                             <span>📅 <span x-text="formatDateWithTimezone(event.date, event.timezone)"></span></span>
                                             <span>🎯 <span x-text="event.default_points_allocated"></span> points</span>
-                                            <span>📍 <span x-text="event.latitude && event.longitude ? `${event.latitude}, ${event.longitude}` : 'Location TBD'"></span></span>
+                                            <span>📍 
+                                                <a x-show="event.latitude && event.longitude" 
+                                                   :href="`https://maps.google.com/?q=${event.latitude},${event.longitude}`" 
+                                                   target="_blank" 
+                                                   class="location-link"
+                                                   x-text="`${event.latitude}, ${event.longitude}`"></a>
+                                                <span x-show="!event.latitude || !event.longitude">Location TBD</span>
+                                            </span>
                                         </div>
                                     </div>
                                 </template>
