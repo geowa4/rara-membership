@@ -46,6 +46,13 @@
                                     <option value="Advanced">Advanced</option>
                                     <option value="Novice">Novice</option>
                                 </select>
+                                <select x-model="memberTypeFilter" @change="filterMembers()" class="filter-select">
+                                    <option value="">All Member Types</option>
+                                    <option value="Student">Student</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Senior">Senior</option>
+                                    <option value="Associate">Associate</option>
+                                </select>
                             </div>
                             
                             <div class="members-table">
@@ -55,6 +62,7 @@
                                             <th>Call Sign</th>
                                             <th>Name</th>
                                             <th>License Class</th>
+                                            <th>Member Type</th>
                                             <th>Email</th>
                                             <th>Actions</th>
                                         </tr>
@@ -65,6 +73,7 @@
                                                 <td><strong x-text="member.call_sign"></strong></td>
                                                 <td x-text="member.name"></td>
                                                 <td x-text="member.license_class || 'Unknown'"></td>
+                                                <td x-text="member.member_type || '-'"></td>
                                                 <td x-text="member.email"></td>
                                                 <td>
                                                     <button 
@@ -150,6 +159,17 @@
                     </div>
                 </div>
                 
+                <div class="form-group">
+                    <label for="memberType">Member Type</label>
+                    <select id="memberType" x-model="formData.member_type" class="form-select">
+                        <option value="">Select Member Type</option>
+                        <option value="Student">Student</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Associate">Associate</option>
+                    </select>
+                </div>
+                
                 <template x-if="isEditing">
                     <div class="form-row">
                         <div class="form-group">
@@ -197,6 +217,7 @@
                 loading: true,
                 searchTerm: '',
                 licenseFilter: '',
+                memberTypeFilter: '',
                 
                 async loadMembers() {
                     try {
@@ -229,6 +250,13 @@
                     if (this.licenseFilter) {
                         filtered = filtered.filter(member => 
                             member.license_class === this.licenseFilter
+                        );
+                    }
+                    
+                    // Filter by member type
+                    if (this.memberTypeFilter) {
+                        filtered = filtered.filter(member => 
+                            member.member_type === this.memberTypeFilter
                         );
                     }
                     

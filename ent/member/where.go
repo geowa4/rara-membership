@@ -88,6 +88,11 @@ func IsActive(v bool) predicate.Member {
 	return predicate.Member(sql.FieldEQ(FieldIsActive, v))
 }
 
+// MemberType applies equality check predicate on the "member_type" field. It's identical to MemberTypeEQ.
+func MemberType(v string) predicate.Member {
+	return predicate.Member(sql.FieldEQ(FieldMemberType, v))
+}
+
 // IsSilentKey applies equality check predicate on the "is_silent_key" field. It's identical to IsSilentKeyEQ.
 func IsSilentKey(v bool) predicate.Member {
 	return predicate.Member(sql.FieldEQ(FieldIsSilentKey, v))
@@ -536,6 +541,81 @@ func IsActiveEQ(v bool) predicate.Member {
 // IsActiveNEQ applies the NEQ predicate on the "is_active" field.
 func IsActiveNEQ(v bool) predicate.Member {
 	return predicate.Member(sql.FieldNEQ(FieldIsActive, v))
+}
+
+// MemberTypeEQ applies the EQ predicate on the "member_type" field.
+func MemberTypeEQ(v string) predicate.Member {
+	return predicate.Member(sql.FieldEQ(FieldMemberType, v))
+}
+
+// MemberTypeNEQ applies the NEQ predicate on the "member_type" field.
+func MemberTypeNEQ(v string) predicate.Member {
+	return predicate.Member(sql.FieldNEQ(FieldMemberType, v))
+}
+
+// MemberTypeIn applies the In predicate on the "member_type" field.
+func MemberTypeIn(vs ...string) predicate.Member {
+	return predicate.Member(sql.FieldIn(FieldMemberType, vs...))
+}
+
+// MemberTypeNotIn applies the NotIn predicate on the "member_type" field.
+func MemberTypeNotIn(vs ...string) predicate.Member {
+	return predicate.Member(sql.FieldNotIn(FieldMemberType, vs...))
+}
+
+// MemberTypeGT applies the GT predicate on the "member_type" field.
+func MemberTypeGT(v string) predicate.Member {
+	return predicate.Member(sql.FieldGT(FieldMemberType, v))
+}
+
+// MemberTypeGTE applies the GTE predicate on the "member_type" field.
+func MemberTypeGTE(v string) predicate.Member {
+	return predicate.Member(sql.FieldGTE(FieldMemberType, v))
+}
+
+// MemberTypeLT applies the LT predicate on the "member_type" field.
+func MemberTypeLT(v string) predicate.Member {
+	return predicate.Member(sql.FieldLT(FieldMemberType, v))
+}
+
+// MemberTypeLTE applies the LTE predicate on the "member_type" field.
+func MemberTypeLTE(v string) predicate.Member {
+	return predicate.Member(sql.FieldLTE(FieldMemberType, v))
+}
+
+// MemberTypeContains applies the Contains predicate on the "member_type" field.
+func MemberTypeContains(v string) predicate.Member {
+	return predicate.Member(sql.FieldContains(FieldMemberType, v))
+}
+
+// MemberTypeHasPrefix applies the HasPrefix predicate on the "member_type" field.
+func MemberTypeHasPrefix(v string) predicate.Member {
+	return predicate.Member(sql.FieldHasPrefix(FieldMemberType, v))
+}
+
+// MemberTypeHasSuffix applies the HasSuffix predicate on the "member_type" field.
+func MemberTypeHasSuffix(v string) predicate.Member {
+	return predicate.Member(sql.FieldHasSuffix(FieldMemberType, v))
+}
+
+// MemberTypeIsNil applies the IsNil predicate on the "member_type" field.
+func MemberTypeIsNil() predicate.Member {
+	return predicate.Member(sql.FieldIsNull(FieldMemberType))
+}
+
+// MemberTypeNotNil applies the NotNil predicate on the "member_type" field.
+func MemberTypeNotNil() predicate.Member {
+	return predicate.Member(sql.FieldNotNull(FieldMemberType))
+}
+
+// MemberTypeEqualFold applies the EqualFold predicate on the "member_type" field.
+func MemberTypeEqualFold(v string) predicate.Member {
+	return predicate.Member(sql.FieldEqualFold(FieldMemberType, v))
+}
+
+// MemberTypeContainsFold applies the ContainsFold predicate on the "member_type" field.
+func MemberTypeContainsFold(v string) predicate.Member {
+	return predicate.Member(sql.FieldContainsFold(FieldMemberType, v))
 }
 
 // IsSilentKeyEQ applies the EQ predicate on the "is_silent_key" field.

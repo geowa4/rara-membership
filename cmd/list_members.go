@@ -57,6 +57,10 @@ var listMembersCmd = &cobra.Command{
 			if licenseClass == "" {
 				licenseClass = "-"
 			}
+			memberType := m.MemberType
+			if memberType == "" {
+				memberType = "-"
+			}
 			rows[i] = []string{
 				strconv.Itoa(m.ID),
 				m.Name,
@@ -65,6 +69,7 @@ var listMembersCmd = &cobra.Command{
 				m.Phone,
 				m.Frn,
 				licenseClass,
+				memberType,
 				activeStatus,
 				silentKeyStatus,
 			}
@@ -84,7 +89,7 @@ var listMembersCmd = &cobra.Command{
 					return oddRowStyle
 				}
 			}).
-			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "FRN", "LICENSE", "ACTIVE", "SILENT KEY").
+			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "FRN", "LICENSE", "TYPE", "ACTIVE", "SILENT KEY").
 			Rows(rows...)
 
 		// Print title and table

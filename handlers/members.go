@@ -45,6 +45,7 @@ func CreateMember(w http.ResponseWriter, r *http.Request) {
 		MailingAddress *string `json:"mailing_address"`
 		FRN            *string `json:"frn"`
 		LicenseClass   *string `json:"license_class"`
+		MemberType     *string `json:"member_type"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -68,6 +69,7 @@ func CreateMember(w http.ResponseWriter, r *http.Request) {
 		MailingAddress: input.MailingAddress,
 		FRN:            input.FRN,
 		LicenseClass:   input.LicenseClass,
+		MemberType:     input.MemberType,
 	}
 
 	member, err := memberService.CreateMember(ctx, memberInput)
@@ -103,6 +105,7 @@ func UpdateMember(w http.ResponseWriter, r *http.Request) {
 		MailingAddress *string `json:"mailing_address"`
 		FRN            *string `json:"frn"`
 		LicenseClass   *string `json:"license_class"`
+		MemberType     *string `json:"member_type"`
 		IsActive       *bool   `json:"is_active"`
 		IsSilentKey    *bool   `json:"is_silent_key"`
 	}
@@ -123,6 +126,7 @@ func UpdateMember(w http.ResponseWriter, r *http.Request) {
 		MailingAddress: input.MailingAddress,
 		FRN:            input.FRN,
 		LicenseClass:   input.LicenseClass,
+		MemberType:     input.MemberType,
 		IsActive:       input.IsActive,
 		IsSilentKey:    input.IsSilentKey,
 	}

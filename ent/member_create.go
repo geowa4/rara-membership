@@ -103,6 +103,20 @@ func (_c *MemberCreate) SetNillableIsActive(v *bool) *MemberCreate {
 	return _c
 }
 
+// SetMemberType sets the "member_type" field.
+func (_c *MemberCreate) SetMemberType(v string) *MemberCreate {
+	_c.mutation.SetMemberType(v)
+	return _c
+}
+
+// SetNillableMemberType sets the "member_type" field if the given value is not nil.
+func (_c *MemberCreate) SetNillableMemberType(v *string) *MemberCreate {
+	if v != nil {
+		_c.SetMemberType(*v)
+	}
+	return _c
+}
+
 // SetIsSilentKey sets the "is_silent_key" field.
 func (_c *MemberCreate) SetIsSilentKey(v bool) *MemberCreate {
 	_c.mutation.SetIsSilentKey(v)
@@ -225,6 +239,11 @@ func (_c *MemberCreate) check() error {
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "Member.is_active"`)}
 	}
+	if v, ok := _c.mutation.MemberType(); ok {
+		if err := member.MemberTypeValidator(v); err != nil {
+			return &ValidationError{Name: "member_type", err: fmt.Errorf(`ent: validator failed for field "Member.member_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsSilentKey(); !ok {
 		return &ValidationError{Name: "is_silent_key", err: errors.New(`ent: missing required field "Member.is_silent_key"`)}
 	}
@@ -286,6 +305,10 @@ func (_c *MemberCreate) createSpec() (*Member, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(member.FieldIsActive, field.TypeBool, value)
 		_node.IsActive = value
+	}
+	if value, ok := _c.mutation.MemberType(); ok {
+		_spec.SetField(member.FieldMemberType, field.TypeString, value)
+		_node.MemberType = value
 	}
 	if value, ok := _c.mutation.IsSilentKey(); ok {
 		_spec.SetField(member.FieldIsSilentKey, field.TypeBool, value)

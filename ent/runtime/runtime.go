@@ -106,12 +106,16 @@ func init() {
 	memberDescIsActive := memberFields[6].Descriptor()
 	// member.DefaultIsActive holds the default value on creation for the is_active field.
 	member.DefaultIsActive = memberDescIsActive.Default.(bool)
+	// memberDescMemberType is the schema descriptor for member_type field.
+	memberDescMemberType := memberFields[7].Descriptor()
+	// member.MemberTypeValidator is a validator for the "member_type" field. It is called by the builders before save.
+	member.MemberTypeValidator = memberDescMemberType.Validators[0].(func(string) error)
 	// memberDescIsSilentKey is the schema descriptor for is_silent_key field.
-	memberDescIsSilentKey := memberFields[7].Descriptor()
+	memberDescIsSilentKey := memberFields[8].Descriptor()
 	// member.DefaultIsSilentKey holds the default value on creation for the is_silent_key field.
 	member.DefaultIsSilentKey = memberDescIsSilentKey.Default.(bool)
 	// memberDescLicenseClass is the schema descriptor for license_class field.
-	memberDescLicenseClass := memberFields[8].Descriptor()
+	memberDescLicenseClass := memberFields[9].Descriptor()
 	// member.LicenseClassValidator is a validator for the "license_class" field. It is called by the builders before save.
 	member.LicenseClassValidator = memberDescLicenseClass.Validators[0].(func(string) error)
 	pointallocationFields := schema.PointAllocation{}.Fields()

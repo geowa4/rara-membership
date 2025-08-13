@@ -25,6 +25,7 @@ type CreateMemberInput struct {
 	MailingAddress *string
 	FRN            *string
 	LicenseClass   *string
+	MemberType     *string
 }
 
 type UpdateMemberInput struct {
@@ -35,6 +36,7 @@ type UpdateMemberInput struct {
 	MailingAddress *string
 	FRN            *string
 	LicenseClass   *string
+	MemberType     *string
 	IsActive       *bool
 	IsSilentKey    *bool
 }
@@ -44,7 +46,7 @@ func GetActiveMembers() ([]*ent.Member, error) {
 	return database.Client.Member.Query().Where(member.IsActiveEQ(true)).All(ctx)
 }
 
-func CreateMember(name, email, phone, mailingAddress, callSign, frn string, isActive, isSilentKey bool, licenseClass string) (*ent.Member, error) {
+func CreateMember(name, email, phone, mailingAddress, callSign, frn string, isActive, isSilentKey bool, licenseClass, memberType string) (*ent.Member, error) {
 	ctx := context.Background()
 	create := database.Client.Member.Create().
 		SetName(name).
@@ -72,6 +74,10 @@ func CreateMember(name, email, phone, mailingAddress, callSign, frn string, isAc
 		create = create.SetLicenseClass(licenseClass)
 	}
 
+	if memberType != "" {
+		create = create.SetMemberType(memberType)
+	}
+
 	return create.Save(ctx)
 }
 
@@ -85,7 +91,7 @@ func GetActiveMemberByCallSign(callSign string) (*ent.Member, error) {
 		Only(ctx)
 }
 
-func UpdateMember(id int, name, email, phone, mailingAddress, callSign, frn string, isActive, isSilentKey bool, licenseClass string) (*ent.Member, error) {
+func UpdateMember(id int, name, email, phone, mailingAddress, callSign, frn string, isActive, isSilentKey bool, licenseClass, memberType string) (*ent.Member, error) {
 	ctx := context.Background()
 	update := database.Client.Member.UpdateOneID(id).
 		SetName(name).
@@ -123,6 +129,12 @@ func UpdateMember(id int, name, email, phone, mailingAddress, callSign, frn stri
 		update = update.ClearLicenseClass()
 	}
 
+	if memberType != "" {
+		update = update.SetMemberType(memberType)
+	} else {
+		update = update.ClearMemberType()
+	}
+
 	return update.Save(ctx)
 }
 
@@ -148,6 +160,10 @@ func (s *MemberService) CreateMember(ctx context.Context, input CreateMemberInpu
 
 	if input.LicenseClass != nil && *input.LicenseClass != "" {
 		create = create.SetLicenseClass(*input.LicenseClass)
+	}
+
+	if input.MemberType != nil && *input.MemberType != "" {
+		create = create.SetMemberType(*input.MemberType)
 	}
 
 	return create.Save(ctx)
@@ -210,6 +226,14 @@ func (s *MemberService) UpdateMemberByCallSign(ctx context.Context, callSign str
 			update = update.SetLicenseClass(*input.LicenseClass)
 		} else {
 			update = update.ClearLicenseClass()
+		}
+	}
+
+	if input.MemberType != nil {
+		if *input.MemberType != "" {
+			update = update.SetMemberType(*input.MemberType)
+		} else {
+			update = update.ClearMemberType()
 		}
 	}
 

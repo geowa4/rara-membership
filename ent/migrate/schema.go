@@ -46,6 +46,7 @@ var (
 		{Name: "call_sign", Type: field.TypeString, Nullable: true},
 		{Name: "frn", Type: field.TypeString, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "member_type", Type: field.TypeString, Nullable: true},
 		{Name: "is_silent_key", Type: field.TypeBool, Default: false},
 		{Name: "license_class", Type: field.TypeString, Nullable: true},
 	}

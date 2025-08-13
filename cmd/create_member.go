@@ -24,6 +24,7 @@ var createMemberCmd = &cobra.Command{
 			isActive       bool = true
 			isSilentKey    bool = false
 			licenseClass   string
+			memberType     string
 		)
 
 		form := huh.NewForm(
@@ -88,6 +89,18 @@ var createMemberCmd = &cobra.Command{
 					).
 					Value(&licenseClass),
 
+				huh.NewSelect[string]().
+					Title("Member Type").
+					Description("Select the member type (optional)").
+					Options(
+						huh.NewOption("None", ""),
+						huh.NewOption("Student", "Student"),
+						huh.NewOption("Regular", "Regular"),
+						huh.NewOption("Senior", "Senior"),
+						huh.NewOption("Associate", "Associate"),
+					).
+					Value(&memberType),
+
 				huh.NewConfirm().
 					Title("Active Member?").
 					Description("Is this member currently active?").
@@ -106,7 +119,7 @@ var createMemberCmd = &cobra.Command{
 		}
 
 		// Create the member
-		member, err := services.CreateMember(name, email, phone, mailingAddress, callSign, frn, isActive, isSilentKey, licenseClass)
+		member, err := services.CreateMember(name, email, phone, mailingAddress, callSign, frn, isActive, isSilentKey, licenseClass, memberType)
 		if err != nil {
 			return fmt.Errorf("failed to create member: %w", err)
 		}
@@ -125,6 +138,9 @@ var createMemberCmd = &cobra.Command{
 		fmt.Printf("FRN: %s\n", member.Frn)
 		if member.LicenseClass != "" {
 			fmt.Printf("License Class: %s\n", member.LicenseClass)
+		}
+		if member.MemberType != "" {
+			fmt.Printf("Member Type: %s\n", member.MemberType)
 		}
 		fmt.Printf("Active: %t\n", member.IsActive)
 		fmt.Printf("Silent Key: %t\n", member.IsSilentKey)

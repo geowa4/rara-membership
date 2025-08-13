@@ -151,6 +151,26 @@ func (_u *MemberUpdate) SetNillableIsActive(v *bool) *MemberUpdate {
 	return _u
 }
 
+// SetMemberType sets the "member_type" field.
+func (_u *MemberUpdate) SetMemberType(v string) *MemberUpdate {
+	_u.mutation.SetMemberType(v)
+	return _u
+}
+
+// SetNillableMemberType sets the "member_type" field if the given value is not nil.
+func (_u *MemberUpdate) SetNillableMemberType(v *string) *MemberUpdate {
+	if v != nil {
+		_u.SetMemberType(*v)
+	}
+	return _u
+}
+
+// ClearMemberType clears the value of the "member_type" field.
+func (_u *MemberUpdate) ClearMemberType() *MemberUpdate {
+	_u.mutation.ClearMemberType()
+	return _u
+}
+
 // SetIsSilentKey sets the "is_silent_key" field.
 func (_u *MemberUpdate) SetIsSilentKey(v bool) *MemberUpdate {
 	_u.mutation.SetIsSilentKey(v)
@@ -296,6 +316,11 @@ func (_u *MemberUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Member.email": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.MemberType(); ok {
+		if err := member.MemberTypeValidator(v); err != nil {
+			return &ValidationError{Name: "member_type", err: fmt.Errorf(`ent: validator failed for field "Member.member_type": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.LicenseClass(); ok {
 		if err := member.LicenseClassValidator(v); err != nil {
 			return &ValidationError{Name: "license_class", err: fmt.Errorf(`ent: validator failed for field "Member.license_class": %w`, err)}
@@ -348,6 +373,12 @@ func (_u *MemberUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(member.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MemberType(); ok {
+		_spec.SetField(member.FieldMemberType, field.TypeString, value)
+	}
+	if _u.mutation.MemberTypeCleared() {
+		_spec.ClearField(member.FieldMemberType, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsSilentKey(); ok {
 		_spec.SetField(member.FieldIsSilentKey, field.TypeBool, value)
@@ -590,6 +621,26 @@ func (_u *MemberUpdateOne) SetNillableIsActive(v *bool) *MemberUpdateOne {
 	return _u
 }
 
+// SetMemberType sets the "member_type" field.
+func (_u *MemberUpdateOne) SetMemberType(v string) *MemberUpdateOne {
+	_u.mutation.SetMemberType(v)
+	return _u
+}
+
+// SetNillableMemberType sets the "member_type" field if the given value is not nil.
+func (_u *MemberUpdateOne) SetNillableMemberType(v *string) *MemberUpdateOne {
+	if v != nil {
+		_u.SetMemberType(*v)
+	}
+	return _u
+}
+
+// ClearMemberType clears the value of the "member_type" field.
+func (_u *MemberUpdateOne) ClearMemberType() *MemberUpdateOne {
+	_u.mutation.ClearMemberType()
+	return _u
+}
+
 // SetIsSilentKey sets the "is_silent_key" field.
 func (_u *MemberUpdateOne) SetIsSilentKey(v bool) *MemberUpdateOne {
 	_u.mutation.SetIsSilentKey(v)
@@ -748,6 +799,11 @@ func (_u *MemberUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Member.email": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.MemberType(); ok {
+		if err := member.MemberTypeValidator(v); err != nil {
+			return &ValidationError{Name: "member_type", err: fmt.Errorf(`ent: validator failed for field "Member.member_type": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.LicenseClass(); ok {
 		if err := member.LicenseClassValidator(v); err != nil {
 			return &ValidationError{Name: "license_class", err: fmt.Errorf(`ent: validator failed for field "Member.license_class": %w`, err)}
@@ -817,6 +873,12 @@ func (_u *MemberUpdateOne) sqlSave(ctx context.Context) (_node *Member, err erro
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(member.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MemberType(); ok {
+		_spec.SetField(member.FieldMemberType, field.TypeString, value)
+	}
+	if _u.mutation.MemberTypeCleared() {
+		_spec.ClearField(member.FieldMemberType, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsSilentKey(); ok {
 		_spec.SetField(member.FieldIsSilentKey, field.TypeBool, value)

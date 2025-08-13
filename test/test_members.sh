@@ -63,7 +63,8 @@ member_data='{
     "phone": "555-1234",
     "mailing_address": "123 Main St, Anytown, USA",
     "frn": "0012345678",
-    "license_class": "General"
+    "license_class": "General",
+    "member_type": "Regular"
 }'
 test_endpoint "POST" "/members" "$member_data" "201" "POST /api/members"
 
@@ -82,7 +83,8 @@ test_endpoint "POST" "/members" "$invalid_data" "400" "POST /api/members (invali
 echo -e "\n${YELLOW}Test 5: Update member${NC}"
 update_data='{
     "phone": "555-5678",
-    "license_class": "Extra"
+    "license_class": "Extra",
+    "member_type": "Senior"
 }'
 test_endpoint "PUT" "/members/W1TEST" "$update_data" "200" "PUT /api/members/{call_sign}"
 
@@ -105,9 +107,32 @@ member2_data='{
     "call_sign": "KD2ABC",
     "email": "jane.smith@example.com",
     "phone": "555-9999",
-    "license_class": "Technician"
+    "license_class": "Technician",
+    "member_type": "Student"
 }'
 test_endpoint "POST" "/members" "$member2_data" "201" "POST /api/members (member 2)"
+
+# Test 10: Test member type validation
+echo -e "\n${YELLOW}Test 10: Test member type validation${NC}"
+invalid_member_type='{
+    "name": "Test User",
+    "call_sign": "W1INVALID",
+    "email": "test@example.com",
+    "member_type": "InvalidType"
+}'
+test_endpoint "POST" "/members" "$invalid_member_type" "500" "POST /api/members (invalid member type)"
+
+# Test 11: Verify member_type field appears in response
+echo -e "\n${YELLOW}Test 11: Verify member_type field in response${NC}"
+echo -n "Checking if member_type field is present in member data... "
+response=$(curl -s "$API_URL/members")
+if echo "$response" | jq -e '.[0].member_type' >/dev/null 2>&1; then
+    echo -e "${GREEN}PASSED${NC}"
+    echo "  Member types found: $(echo "$response" | jq -r '.[].member_type // "null"' | sort | uniq | tr '\n' ', ' | sed 's/,$//')"
+else
+    echo -e "${RED}FAILED${NC}"
+    echo "  member_type field not found in response"
+fi
 
 echo -e "\n================================"
 echo "Members API tests completed!"

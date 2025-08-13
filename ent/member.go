@@ -30,6 +30,8 @@ type Member struct {
 	Frn string `json:"frn,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
+	// MemberType holds the value of the "member_type" field.
+	MemberType string `json:"member_type,omitempty"`
 	// IsSilentKey holds the value of the "is_silent_key" field.
 	IsSilentKey bool `json:"is_silent_key,omitempty"`
 	// LicenseClass holds the value of the "license_class" field.
@@ -78,7 +80,7 @@ func (*Member) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case member.FieldID:
 			values[i] = new(sql.NullInt64)
-		case member.FieldName, member.FieldEmail, member.FieldPhone, member.FieldMailingAddress, member.FieldCallSign, member.FieldFrn, member.FieldLicenseClass:
+		case member.FieldName, member.FieldEmail, member.FieldPhone, member.FieldMailingAddress, member.FieldCallSign, member.FieldFrn, member.FieldMemberType, member.FieldLicenseClass:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -142,6 +144,12 @@ func (_m *Member) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
 			} else if value.Valid {
 				_m.IsActive = value.Bool
+			}
+		case member.FieldMemberType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field member_type", values[i])
+			} else if value.Valid {
+				_m.MemberType = value.String
 			}
 		case member.FieldIsSilentKey:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -221,6 +229,9 @@ func (_m *Member) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))
+	builder.WriteString(", ")
+	builder.WriteString("member_type=")
+	builder.WriteString(_m.MemberType)
 	builder.WriteString(", ")
 	builder.WriteString("is_silent_key=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSilentKey))

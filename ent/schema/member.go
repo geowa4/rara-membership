@@ -31,6 +31,15 @@ func (Member) Fields() []ent.Field {
 		field.String("call_sign").Optional(),
 		field.String("frn").Optional(),
 		field.Bool("is_active").Default(true),
+		field.String("member_type").
+			Optional().
+			Validate(func(t string) error {
+				types := []string{"Student", "Regular", "Senior", "Associate"}
+				if !slices.Contains(types, t) {
+					return fmt.Errorf("invalid member type %s is not one of %+q", t, types)
+				}
+				return nil
+			}),
 		field.Bool("is_silent_key").Default(false),
 		field.String("license_class").
 			Optional().

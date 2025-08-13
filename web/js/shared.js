@@ -22,6 +22,7 @@ function memberModal() {
             mailing_address: '',
             frn: '',
             license_class: '',
+            member_type: '',
             is_active: true,
             is_silent_key: false
         },
@@ -48,6 +49,7 @@ function memberModal() {
                 mailing_address: member.mailing_address || '',
                 frn: member.frn || '',
                 license_class: member.license_class || '',
+                member_type: member.member_type || '',
                 is_active: member.is_active !== false,
                 is_silent_key: member.is_silent_key === true
             };
@@ -69,6 +71,7 @@ function memberModal() {
                 mailing_address: '',
                 frn: '',
                 license_class: '',
+                member_type: '',
                 is_active: true,
                 is_silent_key: false
             };

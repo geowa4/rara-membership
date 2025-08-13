@@ -37,6 +37,7 @@ var updateMemberCmd = &cobra.Command{
 			isActive       = member.IsActive
 			isSilentKey    = member.IsSilentKey
 			licenseClass   = member.LicenseClass
+			memberType     = member.MemberType
 		)
 
 		fmt.Printf("📝 Updating member: %s (%s)\n\n", member.Name, member.CallSign)
@@ -103,6 +104,18 @@ var updateMemberCmd = &cobra.Command{
 					).
 					Value(&licenseClass),
 
+				huh.NewSelect[string]().
+					Title("Member Type").
+					Description("Select the member type (optional)").
+					Options(
+						huh.NewOption("None", ""),
+						huh.NewOption("Student", "Student"),
+						huh.NewOption("Regular", "Regular"),
+						huh.NewOption("Senior", "Senior"),
+						huh.NewOption("Associate", "Associate"),
+					).
+					Value(&memberType),
+
 				huh.NewConfirm().
 					Title("Active Member?").
 					Description("Is this member currently active?").
@@ -121,7 +134,7 @@ var updateMemberCmd = &cobra.Command{
 		}
 
 		// Update the member
-		updatedMember, err := services.UpdateMember(member.ID, name, email, phone, mailingAddress, callSign, frn, isActive, isSilentKey, licenseClass)
+		updatedMember, err := services.UpdateMember(member.ID, name, email, phone, mailingAddress, callSign, frn, isActive, isSilentKey, licenseClass, memberType)
 		if err != nil {
 			return fmt.Errorf("failed to update member: %w", err)
 		}
@@ -156,6 +169,10 @@ var updateMemberCmd = &cobra.Command{
 		if memberLicenseClass == "" {
 			memberLicenseClass = "-"
 		}
+		memberMemberType := updatedMember.MemberType
+		if memberMemberType == "" {
+			memberMemberType = "-"
+		}
 
 		row := []string{
 			strconv.Itoa(updatedMember.ID),
@@ -165,6 +182,7 @@ var updateMemberCmd = &cobra.Command{
 			updatedMember.Phone,
 			updatedMember.Frn,
 			memberLicenseClass,
+			memberMemberType,
 			activeStatus,
 			silentKeyStatus,
 		}
@@ -183,7 +201,7 @@ var updateMemberCmd = &cobra.Command{
 					return oddRowStyle
 				}
 			}).
-			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "FRN", "LICENSE", "ACTIVE", "SILENT KEY").
+			Headers("ID", "NAME", "CALL SIGN", "EMAIL", "PHONE", "FRN", "LICENSE", "TYPE", "ACTIVE", "SILENT KEY").
 			Rows([][]string{row}...)
 
 		// Print title and table

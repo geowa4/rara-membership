@@ -27,6 +27,8 @@ const (
 	FieldFrn = "frn"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
+	// FieldMemberType holds the string denoting the member_type field in the database.
+	FieldMemberType = "member_type"
 	// FieldIsSilentKey holds the string denoting the is_silent_key field in the database.
 	FieldIsSilentKey = "is_silent_key"
 	// FieldLicenseClass holds the string denoting the license_class field in the database.
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldCallSign,
 	FieldFrn,
 	FieldIsActive,
+	FieldMemberType,
 	FieldIsSilentKey,
 	FieldLicenseClass,
 }
@@ -88,6 +91,8 @@ var (
 	EmailValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
+	// MemberTypeValidator is a validator for the "member_type" field. It is called by the builders before save.
+	MemberTypeValidator func(string) error
 	// DefaultIsSilentKey holds the default value on creation for the "is_silent_key" field.
 	DefaultIsSilentKey bool
 	// LicenseClassValidator is a validator for the "license_class" field. It is called by the builders before save.
@@ -135,6 +140,11 @@ func ByFrn(opts ...sql.OrderTermOption) OrderOption {
 // ByIsActive orders the results by the is_active field.
 func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByMemberType orders the results by the member_type field.
+func ByMemberType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMemberType, opts...).ToFunc()
 }
 
 // ByIsSilentKey orders the results by the is_silent_key field.
