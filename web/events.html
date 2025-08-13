@@ -29,8 +29,8 @@
                             📡 Loading events...
                         </div>
                         
-                        <div x-show="!loading && events.length > 0">
-                            <!-- Search and Filter Controls -->
+                        <!-- Search and Filter Controls - always show when not loading -->
+                        <div x-show="!loading">
                             <div class="filter-controls">
                                 <input 
                                     type="search" 
@@ -44,6 +44,9 @@
                                     <option value="past">Past Events</option>
                                 </select>
                             </div>
+                        </div>
+                        
+                        <div x-show="!loading && events.length > 0">
                             <div class="events-grid">
                                 <template x-for="event in filteredEvents" :key="event.id">
                                     <div class="event-card">
@@ -78,8 +81,8 @@
                         <div x-show="!loading && events.length === 0" class="empty-state">
                             <div class="empty-icon">📅</div>
                             <h3>No Events Scheduled</h3>
-                            <p>Create your first club event.</p>
-                            <button class="btn btn-primary" @click="window.eventModalInstance.showCreateModal()">+ Add First Event</button>
+                            <p>Create your next club event.</p>
+                            <button class="btn btn-primary" @click="window.eventModalInstance.showCreateModal()">+ Add Next Event</button>
                         </div>
                     </div>
                 </div>
