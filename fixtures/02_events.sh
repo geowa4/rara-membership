@@ -97,4 +97,19 @@ curl -X POST "$API_BASE/events" \
   }'
 echo ""
 
+# Event 7: Future Event for Testing
+echo "Creating event: Future Convention 2038..."
+curl -X POST "$API_BASE/events" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "RARA 50th Anniversary Convention",
+    "description": "Golden anniversary celebration of the Rochester Amateur Radio Association. Multi-day convention with technical sessions, vendors, and social events.",
+    "date": "2038-08-15T09:00",
+    "timezone": "America/New_York",
+    "points": 25,
+    "latitude": 43.1566,
+    "longitude": -77.6088
+  }'
+echo ""
+
 echo "✅ Events created successfully!"

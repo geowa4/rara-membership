@@ -122,8 +122,28 @@ invalid_member_type='{
 }'
 test_endpoint "POST" "/members" "$invalid_member_type" "500" "POST /api/members (invalid member type)"
 
-# Test 11: Verify member_type field appears in response
-echo -e "\n${YELLOW}Test 11: Verify member_type field in response${NC}"
+# Test 11: Test active member without member_type (should fail)
+echo -e "\n${YELLOW}Test 11: Test active member without member_type${NC}"
+active_no_type='{
+    "name": "Test User",
+    "call_sign": "W1NOYPE",
+    "email": "test@example.com",
+    "is_active": true
+}'
+test_endpoint "POST" "/members" "$active_no_type" "500" "POST /api/members (active without member_type)"
+
+# Test 12: Test inactive member (should not require member_type)
+echo -e "\n${YELLOW}Test 12: Test inactive member${NC}"
+inactive_member='{
+    "name": "Inactive User",
+    "call_sign": "W1INACTIVE",
+    "email": "inactive@example.com",
+    "is_active": false
+}'
+test_endpoint "POST" "/members" "$inactive_member" "201" "POST /api/members (inactive member)"
+
+# Test 13: Verify member_type field appears in response
+echo -e "\n${YELLOW}Test 13: Verify member_type field in response${NC}"
 echo -n "Checking if member_type field is present in member data... "
 response=$(curl -s "$API_URL/members")
 if echo "$response" | jq -e '.[0].member_type' >/dev/null 2>&1; then

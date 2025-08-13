@@ -96,6 +96,7 @@ func init() {
 	}()
 	memberHooks := schema.Member{}.Hooks()
 	member.Hooks[0] = memberHooks[0]
+	member.Hooks[1] = memberHooks[1]
 	memberFields := schema.Member{}.Fields()
 	_ = memberFields
 	// memberDescEmail is the schema descriptor for email field.

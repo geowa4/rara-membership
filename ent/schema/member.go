@@ -78,6 +78,7 @@ func (Member) Edges() []ent.Edge {
 // Hooks of the Member.
 func (Member) Hooks() []ent.Hook {
 	return []ent.Hook{
+		// Hook 1: Convert call sign to uppercase
 		hook.On(func(next ent.Mutator) ent.Mutator {
 			return hook.MemberFunc(func(ctx context.Context, m *gen.MemberMutation) (ent.Value, error) {
 				if callSign, ok := m.CallSign(); ok {
@@ -86,22 +87,49 @@ func (Member) Hooks() []ent.Hook {
 				return next.Mutate(ctx, m)
 			})
 		}, ent.OpCreate|ent.OpUpdate|ent.OpUpdateOne),
+		
+		// Hook 2: Enforce member_type business rules
+		hook.On(func(next ent.Mutator) ent.Mutator {
+			return hook.MemberFunc(func(ctx context.Context, m *gen.MemberMutation) (ent.Value, error) {
+				// Get current values being set
+				isActive, isActiveExists := m.IsActive()
+				memberType, memberTypeExists := m.MemberType()
+				
+				// For create operations
+				if m.Op() == ent.OpCreate {
+					// Default is_active to true if not specified
+					if !isActiveExists {
+						isActive = true
+					}
+					
+					// Active members must have a member_type
+					if isActive && (!memberTypeExists || memberType == "") {
+						return nil, fmt.Errorf("active members must have a member_type set")
+					}
+					
+					// Inactive members should not have a member_type
+					if !isActive && memberTypeExists && memberType != "" {
+						m.ClearMemberType()
+					}
+				}
+				
+				// For update operations
+				if m.Op() == ent.OpUpdate || m.Op() == ent.OpUpdateOne {
+					// If setting member to inactive, clear member_type
+					if isActiveExists && !isActive {
+						m.ClearMemberType()
+					}
+					
+					// If setting member to active, ensure member_type is set
+					if isActiveExists && isActive {
+						if memberTypeExists && memberType == "" {
+							return nil, fmt.Errorf("active members must have a member_type set")
+						}
+					}
+				}
+				
+				return next.Mutate(ctx, m)
+			})
+		}, ent.OpCreate|ent.OpUpdate|ent.OpUpdateOne),
 	}
-	//return []ent.Hook{
-	//	func(next ent.Mutator) ent.Mutator {
-	//		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	//			// Only process Member mutations
-	//			if memberMutation, ok := m.(interface {
-	//				CallSign() (string, bool)
-	//				SetCallSign(string)
-	//			}); ok {
-	//				// Convert call sign to uppercase if it's being set
-	//				if callSign, exists := memberMutation.CallSign(); exists && callSign != "" {
-	//					memberMutation.SetCallSign(strings.ToUpper(callSign))
-	//				}
-	//			}
-	//			return next.Mutate(ctx, m)
-	//		})
-	//	},
-	//}
 }

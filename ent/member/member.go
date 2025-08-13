@@ -86,7 +86,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/geowa4/rara-membership/ent/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks [2]ent.Hook
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
