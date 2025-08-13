@@ -26,6 +26,8 @@ type CreateMemberInput struct {
 	FRN            *string
 	LicenseClass   *string
 	MemberType     *string
+	IsActive       *bool
+	IsSilentKey    *bool
 }
 
 type UpdateMemberInput struct {
@@ -142,9 +144,21 @@ func (s *MemberService) CreateMember(ctx context.Context, input CreateMemberInpu
 	create := s.client.Member.Create().
 		SetName(input.Name).
 		SetCallSign(strings.ToUpper(input.CallSign)).
-		SetEmail(input.Email).
-		SetIsActive(true).
-		SetIsSilentKey(false)
+		SetEmail(input.Email)
+	
+	// Handle is_active with default value of true
+	if input.IsActive != nil {
+		create = create.SetIsActive(*input.IsActive)
+	} else {
+		create = create.SetIsActive(true)
+	}
+	
+	// Handle is_silent_key with default value of false
+	if input.IsSilentKey != nil {
+		create = create.SetIsSilentKey(*input.IsSilentKey)
+	} else {
+		create = create.SetIsSilentKey(false)
+	}
 
 	if input.Phone != nil && *input.Phone != "" {
 		create = create.SetPhone(*input.Phone)

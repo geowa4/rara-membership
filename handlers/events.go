@@ -98,6 +98,11 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	event, err := eventService.CreateEvent(ctx, input.Name, input.Description, eventDate, input.Timezone, input.Latitude, input.Longitude, input.Points)
 	if err != nil {
+		// Check for validation errors
+		if ent.IsValidationError(err) {
+			http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
+			return
+		}
 		http.Error(w, fmt.Sprintf("Failed to create event: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -154,6 +159,16 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	event, err := eventService.UpdateEvent(ctx, eventID, input.Name, input.Description, eventDate, input.Timezone, input.Latitude, input.Longitude, input.Points)
 	if err != nil {
+		// Check for not found errors
+		if ent.IsNotFound(err) {
+			http.Error(w, "Event not found", http.StatusNotFound)
+			return
+		}
+		// Check for validation errors
+		if ent.IsValidationError(err) {
+			http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
+			return
+		}
 		http.Error(w, fmt.Sprintf("Failed to update event: %v", err), http.StatusInternalServerError)
 		return
 	}

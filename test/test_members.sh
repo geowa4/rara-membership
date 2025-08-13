@@ -120,7 +120,7 @@ invalid_member_type='{
     "email": "test@example.com",
     "member_type": "InvalidType"
 }'
-test_endpoint "POST" "/members" "$invalid_member_type" "500" "POST /api/members (invalid member type)"
+test_endpoint "POST" "/members" "$invalid_member_type" "400" "POST /api/members (invalid member type)"
 
 # Test 11: Test active member without member_type (should fail)
 echo -e "\n${YELLOW}Test 11: Test active member without member_type${NC}"
@@ -130,7 +130,7 @@ active_no_type='{
     "email": "test@example.com",
     "is_active": true
 }'
-test_endpoint "POST" "/members" "$active_no_type" "500" "POST /api/members (active without member_type)"
+test_endpoint "POST" "/members" "$active_no_type" "400" "POST /api/members (active without member_type)"
 
 # Test 12: Test inactive member (should not require member_type)
 echo -e "\n${YELLOW}Test 12: Test inactive member${NC}"

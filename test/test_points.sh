@@ -135,7 +135,7 @@ bad_event='{
     "event_id": 99999,
     "points": 10
 }'
-test_endpoint "POST" "/members/W1TEST/points" "$bad_event" "500" "POST /api/members/{call_sign}/points (bad event)"
+test_endpoint "POST" "/members/W1TEST/points" "$bad_event" "404" "POST /api/members/{call_sign}/points (bad event)"
 
 # Test 13: Allocate points for non-existent member
 echo -e "\n${YELLOW}Test 13: Allocate for non-existent member${NC}"
@@ -159,7 +159,7 @@ duplicate_allocation2='{
     "points": 5,
     "notes": "Second allocation for same event"
 }'
-test_endpoint "POST" "/members/W1TEST/points" "$duplicate_allocation2" "500" "POST /api/members/{call_sign}/points (second)"
+test_endpoint "POST" "/members/W1TEST/points" "$duplicate_allocation2" "409" "POST /api/members/{call_sign}/points (second)"
 
 echo -e "\n================================"
 echo "Points API tests completed!"

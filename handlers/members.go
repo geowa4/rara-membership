@@ -46,6 +46,8 @@ func CreateMember(w http.ResponseWriter, r *http.Request) {
 		FRN            *string `json:"frn"`
 		LicenseClass   *string `json:"license_class"`
 		MemberType     *string `json:"member_type"`
+		IsActive       *bool   `json:"is_active"`
+		IsSilentKey    *bool   `json:"is_silent_key"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -70,12 +72,24 @@ func CreateMember(w http.ResponseWriter, r *http.Request) {
 		FRN:            input.FRN,
 		LicenseClass:   input.LicenseClass,
 		MemberType:     input.MemberType,
+		IsActive:       input.IsActive,
+		IsSilentKey:    input.IsSilentKey,
 	}
 
 	member, err := memberService.CreateMember(ctx, memberInput)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			http.Error(w, "A member with this call sign already exists", http.StatusConflict)
+			return
+		}
+		// Check for validation errors
+		if ent.IsValidationError(err) {
+			http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
+			return
+		}
+		// Check for business rule violations from hooks
+		if strings.Contains(err.Error(), "active members must have a member_type") {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		http.Error(w, fmt.Sprintf("Failed to create member: %v", err), http.StatusInternalServerError)
@@ -135,6 +149,16 @@ func UpdateMember(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			http.Error(w, "Member not found", http.StatusNotFound)
+			return
+		}
+		// Check for validation errors
+		if ent.IsValidationError(err) {
+			http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
+			return
+		}
+		// Check for constraint errors (e.g., duplicate call sign)
+		if ent.IsConstraintError(err) {
+			http.Error(w, fmt.Sprintf("Constraint violation: %v", err), http.StatusConflict)
 			return
 		}
 		http.Error(w, fmt.Sprintf("Failed to update member: %v", err), http.StatusInternalServerError)

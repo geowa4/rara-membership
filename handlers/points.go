@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/geowa4/rara-membership/database"
+	"github.com/geowa4/rara-membership/ent"
 	"github.com/geowa4/rara-membership/services"
 )
 
@@ -162,7 +163,20 @@ func AllocatePoints(w http.ResponseWriter, r *http.Request) {
 
 	allocation, err := pointService.AllocatePoints(ctx, input.EventID, member.ID, input.Points, input.Notes)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error allocating points: %v", err), http.StatusInternalServerError)
+		// Check for specific error cases from the service
+		errStr := err.Error()
+		switch {
+		case strings.Contains(errStr, "not found"):
+			http.Error(w, fmt.Sprintf("Not found: %v", err), http.StatusNotFound)
+		case strings.Contains(errStr, "already exists"):
+			http.Error(w, fmt.Sprintf("Conflict: %v", err), http.StatusConflict)
+		case strings.Contains(errStr, "not active"):
+			http.Error(w, fmt.Sprintf("Bad request: %v", err), http.StatusBadRequest)
+		case ent.IsValidationError(err):
+			http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
+		default:
+			http.Error(w, fmt.Sprintf("Error allocating points: %v", err), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -231,7 +245,18 @@ func RedeemPoints(w http.ResponseWriter, r *http.Request) {
 	// Redeem points
 	deduction, err := deductionService.DeductPoints(ctx, member.ID, input.Points, input.Notes)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error redeeming points: %v", err), http.StatusInternalServerError)
+		// Check for specific error cases from the service
+		errStr := err.Error()
+		switch {
+		case strings.Contains(errStr, "not found"):
+			http.Error(w, fmt.Sprintf("Not found: %v", err), http.StatusNotFound)
+		case strings.Contains(errStr, "insufficient"):
+			http.Error(w, fmt.Sprintf("Bad request: %v", err), http.StatusBadRequest)
+		case ent.IsValidationError(err):
+			http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
+		default:
+			http.Error(w, fmt.Sprintf("Error redeeming points: %v", err), http.StatusInternalServerError)
+		}
 		return
 	}
 
